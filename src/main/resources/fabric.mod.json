@@ -1,38 +1,34 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "vanilla-melody",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Vanilla Melody",
+  "description": "Melody from your minecraft vanilla instruments.",
   "authors": [
-    "Me!"
+    "ishland"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/ishland/VanillaMelody"
   },
 
-  "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "license": "MIT",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "com.ishland.vanillamelody.Mod"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "vanilla-melody.mixins.json"
   ],
+
+  "accessWidener": "vanilla-melody.accesswidener",
 
   "depends": {
     "fabricloader": ">=0.14.6",
-    "fabric": "*",
-    "minecraft": "~1.19",
+    "minecraft": ">=1.18.2",
     "java": ">=17"
-  },
-  "suggests": {
-    "another-mod": "*"
   }
 }
