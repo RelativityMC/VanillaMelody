@@ -16,7 +16,7 @@ public class MixinCommandManager {
 
     @Shadow @Final private CommandDispatcher<ServerCommandSource> dispatcher;
 
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lcom/mojang/brigadier/CommandDispatcher;findAmbiguities(Lcom/mojang/brigadier/AmbiguityConsumer;)V", shift = At.Shift.BEFORE))
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/WorldBorderCommand;register(Lcom/mojang/brigadier/CommandDispatcher;)V", shift = At.Shift.AFTER))
     private void inject(CommandManager.RegistrationEnvironment environment, CallbackInfo ci) {
         PlayCommand.register(this.dispatcher);
     }
