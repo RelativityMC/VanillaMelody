@@ -20,6 +20,7 @@ class MinecraftMidiSynthesizer implements Receiver {
 
     private final SongPlayer songPlayer;
     private final MidiInstruments.MidiInstrument[] channelPrograms = new MidiInstruments.MidiInstrument[16];
+    private final int[] channelProgramsNum = new int[16];
     private final short[] channelPitchBends = new short[16];
     private final byte[][] channelPolyPressures = new byte[16][128];
     private final byte[] channelPressures = new byte[16];
@@ -40,6 +41,7 @@ class MinecraftMidiSynthesizer implements Receiver {
 
     private void reset() {
         Arrays.fill(channelPrograms, MidiInstruments.instrumentMapping.get(0));
+        Arrays.fill(channelProgramsNum, 0);
         Arrays.fill(channelPitchBends, (short) 0);
         for (byte[] bytes : channelPolyPressures) {
             Arrays.fill(bytes, (byte) 127);
@@ -160,6 +162,7 @@ class MinecraftMidiSynthesizer implements Receiver {
 
     public void programChange(ShortMessage shortMessage) {
         channelPrograms[shortMessage.getChannel()] = MidiInstruments.instrumentMapping.get(shortMessage.getData1());
+        channelProgramsNum[shortMessage.getChannel()] = shortMessage.getData1();
         Arrays.fill(channelPolyPressures[shortMessage.getChannel()], (byte) 127);
         runningNotes[shortMessage.getChannel()].clear();
     }
@@ -169,12 +172,15 @@ class MinecraftMidiSynthesizer implements Receiver {
         if (shortMessage.getChannel() != 9) {
             final MidiInstruments.MidiInstrument channelProgram = channelPrograms[shortMessage.getChannel()];
             if (channelProgram == null) return;
+            final short key = (short) (shortMessage.getData1() + (channelProgram.octaveModifier * 12));
             note = new Note(
                     (byte) channelProgram.mcInstrument,
-                    (short) (shortMessage.getData1() + (channelProgram.octaveModifier * 12)),
-                    (byte) ((shortMessage.getData2() / 127.0) * (channelPolyPressures[shortMessage.getChannel()][shortMessage.getData1()] / 127.0) * (channelPressures[shortMessage.getChannel()] / 127.0) * 100),
+                    key,
+                    (float) ((shortMessage.getData2() / 127.0) * (channelPolyPressures[shortMessage.getChannel()][shortMessage.getData1()] / 127.0) * (channelPressures[shortMessage.getChannel()] / 127.0)) * keyVelocityModifier(key),
                     100,
                     (short) (channelPitchBends[shortMessage.getChannel()] / 4096.0 * 100));
+//            System.out.println(channelProgramsNum[shortMessage.getChannel()]);
+//            System.out.println(note);
             if (channelProgram.isLongSound) {
                 runningNotes[shortMessage.getChannel()].remove(new SimpleNote(shortMessage.getData1(), shortMessage.getData2()));
                 runningNotes[shortMessage.getChannel()].add(new SimpleNote(shortMessage.getData1(), shortMessage.getData2()));
@@ -185,7 +191,7 @@ class MinecraftMidiSynthesizer implements Receiver {
             note = new Note(
                     (byte) percussion.mcInstrument,
                     (short) percussion.midiKey,
-                    (byte) ((shortMessage.getData2() / 127.0) * (channelPolyPressures[shortMessage.getChannel()][shortMessage.getData1()] / 127.0) * (channelPressures[shortMessage.getChannel()] / 127.0) * 100),
+                    (float) ((shortMessage.getData2() / 127.0) * (channelPolyPressures[shortMessage.getChannel()][shortMessage.getData1()] / 127.0) * (channelPressures[shortMessage.getChannel()] / 127.0)),
                     100,
                     (short) 0);
         }
@@ -194,6 +200,10 @@ class MinecraftMidiSynthesizer implements Receiver {
 
     private void playNote(Note note) {
         songPlayer.playNote(note);
+    }
+
+    private float keyVelocityModifier(short key) {
+        return 0.6f + key * 0.01f;
     }
 
     @Override
@@ -207,11 +217,12 @@ class MinecraftMidiSynthesizer implements Receiver {
             for (SimpleNote note : channelRunningNotes) {
                 final MidiInstruments.MidiInstrument channelProgram = channelPrograms[channel];
                 if (channelProgram == null) return;
+                final short key = (short) (note.note + (channelProgram.octaveModifier * 12));
                 playNote(
                         new Note(
                                 (byte) channelProgram.mcInstrument,
-                                (short) (note.note + (channelProgram.octaveModifier * 12)),
-                                (byte) Math.max(((note.velocity / 127.0) * (channelPolyPressures[channel][note.note] / 127.0) * (channelPressures[channel] / 127.0)) * 10, 1),
+                                key,
+                                (float) (((note.velocity / 127.0) * (channelPolyPressures[channel][note.note] / 127.0) * (channelPressures[channel] / 127.0)) * 0.1 * keyVelocityModifier(key)),
                                 100,
                                 (short) (channelPitchBends[channel] / 4096.0 * 100))
                 );

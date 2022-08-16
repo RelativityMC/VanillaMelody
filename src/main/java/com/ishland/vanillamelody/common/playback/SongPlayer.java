@@ -52,14 +52,19 @@ public class SongPlayer {
     }
 
     public void playNote(Note note) {
+        final Identifier sound = new Identifier(note.instrument());
         for (ServerPlayerEntity player : players) {
-            player.networkHandler.sendPacket(new PlaySoundIdS2CPacket(
-                    new Identifier(note.instrument()),
-                    SoundCategory.RECORDS,
-                    player.getPos(),
-                    note.volume(),
-                    note.pitch()
-            ));
+            float volume = note.volume();
+            while (volume > 0.0f) {
+                player.networkHandler.sendPacket(new PlaySoundIdS2CPacket(
+                        sound,
+                        SoundCategory.RECORDS,
+                        player.getPos(),
+                        Math.min(volume, 0.9f),
+                        note.pitch()
+                ));
+                volume -= 0.9f;
+            }
         }
 
     }

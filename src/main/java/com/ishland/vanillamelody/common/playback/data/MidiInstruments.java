@@ -275,6 +275,15 @@ public class MidiInstruments {
             this.mcInstrument = mcInstrument;
             this.octaveModifier = octaveModifier;
         }
+
+        @Override
+        public String toString() {
+            return "MidiInstrument{" +
+                    "mcInstrument=" + mcInstrument +
+                    ", octaveModifier=" + octaveModifier +
+                    ", isLongSound=" + isLongSound +
+                    '}';
+        }
     }
 
     public static class MidiPercussion {
