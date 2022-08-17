@@ -19,7 +19,7 @@ import java.util.Set;
 
 class MinecraftMidiSynthesizer implements Receiver {
 
-    private static final boolean DEBUG = FabricLoader.getInstance().isDevelopmentEnvironment();
+    private static final boolean DEBUG = false;
 
     private static int restrict7Bit(int value) {
         if (value < 0) return 0;
@@ -256,6 +256,7 @@ class MinecraftMidiSynthesizer implements Receiver {
     }
 
     public void noteOn(ShortMessage shortMessage) {
+//        if (shortMessage.getChannel() != 3 && shortMessage.getChannel() != 9) return;
         final Note note;
         if (shortMessage.getChannel() == 9 || (isCh10Percussion && shortMessage.getChannel() == 10)) {
             final MidiInstruments.MidiPercussion percussion = percussionBank.get(shortMessage.getData1());

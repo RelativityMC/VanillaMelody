@@ -97,14 +97,14 @@ public class MidiInstruments {
         instrumentMapping.put(30, new MidiInstrument(5, -1, false));
         instrumentMapping.put(31, new MidiInstrument(5, 0, false));
         // Bass
-        instrumentMapping.put(32, new MidiInstrument(1, 1, false));
-        instrumentMapping.put(33, new MidiInstrument(1, 2, false));
-        instrumentMapping.put(34, new MidiInstrument(1, 2, false));
-        instrumentMapping.put(35, new MidiInstrument(1, 2, false));
-        instrumentMapping.put(36, new MidiInstrument(1, 2, false));
-        instrumentMapping.put(37, new MidiInstrument(1, 2, false));
-        instrumentMapping.put(38, new MidiInstrument(1, 2, false));
-        instrumentMapping.put(39, new MidiInstrument(1, 2, false));
+        instrumentMapping.put(32, new MidiInstrument(1, 0, false));
+        instrumentMapping.put(33, new MidiInstrument(1, 1, false));
+        instrumentMapping.put(34, new MidiInstrument(1, 1, false));
+        instrumentMapping.put(35, new MidiInstrument(1, 1, false));
+        instrumentMapping.put(36, new MidiInstrument(1, 1, false));
+        instrumentMapping.put(37, new MidiInstrument(1, 1, false));
+        instrumentMapping.put(38, new MidiInstrument(1, 1, false));
+        instrumentMapping.put(39, new MidiInstrument(1, 1, false));
         // Strings
         instrumentMapping.put(40, new MidiInstrument(6, 0, true));
         instrumentMapping.put(41, new MidiInstrument(6, 0, true));
@@ -120,9 +120,9 @@ public class MidiInstruments {
         instrumentMapping.put(50, new MidiInstrument(6, -2, true));
         instrumentMapping.put(51, new MidiInstrument(6, -2, true));
         instrumentMapping.put(52, new MidiInstrument(6, -2, true));
-        instrumentMapping.put(53, new MidiInstrument(6, -2, true));
-        instrumentMapping.put(54, new MidiInstrument(6, -2, true));
-        instrumentMapping.put(55, new MidiInstrument(6, 1, false));
+        instrumentMapping.put(53, new MidiInstrument(6, -4, true));
+        instrumentMapping.put(54, new MidiInstrument(6, -4, true));
+        instrumentMapping.put(55, new MidiInstrument(6, 0, false));
         // Brass
         instrumentMapping.put(56, new MidiInstrument(6, -2, true));
         instrumentMapping.put(57, new MidiInstrument(6, -2, true));
