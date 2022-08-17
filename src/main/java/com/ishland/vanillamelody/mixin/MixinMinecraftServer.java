@@ -14,7 +14,7 @@ public class MixinMinecraftServer {
 
     @Inject(method = "tickWorlds", at = @At("RETURN"))
     private void postTickWorld(CallbackInfo ci) {
-        SongPlayer.INSTANCE.tick();
+//        SongPlayer.INSTANCE.tick();
     }
 
 }

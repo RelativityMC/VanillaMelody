@@ -37,7 +37,7 @@ public class SongPlayer {
             throw new RuntimeException(e);
         }
 
-        EXECUTOR.scheduleAtFixedRate(synthesizer::tick, 0, 20, TimeUnit.MILLISECONDS);
+        EXECUTOR.scheduleAtFixedRate(this::tick, 0, 20, TimeUnit.MILLISECONDS);
     }
 
     public void addPlayer(ServerPlayerEntity player) {
@@ -49,6 +49,7 @@ public class SongPlayer {
     }
 
     public void tick() {
+        synthesizer.tick();
     }
 
     public void playNote(Note note) {
@@ -73,6 +74,7 @@ public class SongPlayer {
         try {
             final Sequence sequence = MidiSystem.getSequence(new File("default.mid"));
             this.sequencer.stop();
+            this.synthesizer.reset(true);
             this.sequencer.setSequence(sequence);
             this.sequencer.start();
         } catch (Throwable t) {
