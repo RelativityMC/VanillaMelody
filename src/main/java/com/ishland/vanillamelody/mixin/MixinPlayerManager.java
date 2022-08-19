@@ -1,6 +1,6 @@
 package com.ishland.vanillamelody.mixin;
 
-import com.ishland.vanillamelody.common.playback.SongPlayer;
+import com.ishland.vanillamelody.common.playback.ServerSongPlayer;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -15,18 +15,18 @@ public class MixinPlayerManager {
 
     @Inject(method = "onPlayerConnect", at = @At("RETURN"))
     private void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
-        SongPlayer.INSTANCE.addPlayer(player);
+        ServerSongPlayer.INSTANCE.addPlayer(player);
     }
 
     @Inject(method = "remove", at = @At("HEAD"))
     private void onRemove(ServerPlayerEntity player, CallbackInfo ci) {
-        SongPlayer.INSTANCE.removePlayer(player);
+        ServerSongPlayer.INSTANCE.removePlayer(player);
     }
 
     @Inject(method = "respawnPlayer", at = @At("RETURN"))
     private void onRespawn(ServerPlayerEntity player, boolean alive, CallbackInfoReturnable<ServerPlayerEntity> cir) {
-        SongPlayer.INSTANCE.removePlayer(player);
-        SongPlayer.INSTANCE.addPlayer(cir.getReturnValue());
+        ServerSongPlayer.INSTANCE.removePlayer(player);
+        ServerSongPlayer.INSTANCE.addPlayer(cir.getReturnValue());
     }
 
 }

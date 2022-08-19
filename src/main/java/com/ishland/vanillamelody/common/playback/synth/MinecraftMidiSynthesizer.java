@@ -1,10 +1,9 @@
-package com.ishland.vanillamelody.common.playback;
+package com.ishland.vanillamelody.common.playback.synth;
 
 import com.google.common.collect.Sets;
 import com.ishland.vanillamelody.common.playback.data.MidiInstruments;
 import com.ishland.vanillamelody.common.playback.data.Note;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.fabricmc.loader.api.FabricLoader;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
@@ -17,7 +16,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-class MinecraftMidiSynthesizer implements Receiver {
+public class MinecraftMidiSynthesizer implements Receiver {
 
     private static final boolean DEBUG = false;
 
@@ -26,8 +25,7 @@ class MinecraftMidiSynthesizer implements Receiver {
         return Math.min(value, 127);
     }
 
-    private final SongPlayer songPlayer;
-//    private final MidiInstruments.MidiInstrument[] channelPrograms = new MidiInstruments.MidiInstrument[16];
+    private final NoteReceiver noteReceiver;
     private final int[] channelProgramsNum = new int[16];
     private volatile Int2ObjectOpenHashMap<MidiInstruments.MidiInstrument> instrumentBank = MidiInstruments.instrumentMapping;
     private volatile Int2ObjectOpenHashMap<MidiInstruments.MidiPercussion> percussionBank = MidiInstruments.percussionMapping;
@@ -51,8 +49,8 @@ class MinecraftMidiSynthesizer implements Receiver {
         reset(false);
     }
 
-    public MinecraftMidiSynthesizer(SongPlayer songPlayer) {
-        this.songPlayer = songPlayer;
+    public MinecraftMidiSynthesizer(NoteReceiver noteReceiver) {
+        this.noteReceiver = noteReceiver;
     }
 
     public void reset(boolean full) {
@@ -288,7 +286,7 @@ class MinecraftMidiSynthesizer implements Receiver {
     }
 
     private void playNote(Note note) {
-        songPlayer.playNote(note);
+        noteReceiver.playNote(note);
     }
 
     private float keyVelocityModifier(short key) {
