@@ -3,6 +3,7 @@ package com.ishland.vanillamelody.common.playback;
 import com.ishland.vanillamelody.common.playback.data.Note;
 import com.ishland.vanillamelody.common.playback.synth.MinecraftMidiSynthesizer;
 import com.ishland.vanillamelody.common.playback.synth.NoteReceiver;
+import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.packet.s2c.play.PlaySoundIdS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -25,6 +26,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public class ServerSongPlayer implements NoteReceiver {
 
@@ -32,13 +35,28 @@ public class ServerSongPlayer implements NoteReceiver {
 
     public static final ServerSongPlayer INSTANCE = new ServerSongPlayer();
 
+    private static volatile PlayList playList = null;
+
+    public static Stream<String> playlistSuggestion() {
+        return playList.getSongs().stream().map(PlayList.SongInfo::pathWithoutInvalidChars);
+    }
+
+    public static void reload() {
+        playList = PlayList.scan(FabricLoader.getInstance().getConfigDir()
+                .resolve("vanillamelody").resolve("songs").toFile());
+        System.out.println("Found %d midi songs".formatted(playList.getSongs().size()));
+    }
+
+    static {
+        reload();
+    }
+
     private final CopyOnWriteArraySet<ServerPlayerEntity> players = new CopyOnWriteArraySet<>();
 
     private final MinecraftMidiSynthesizer synthesizer = new MinecraftMidiSynthesizer(this);
 
-    private final PlayList playList = PlayList.scan(FabricLoader.getInstance().getConfigDir()
-            .resolve("vanillamelody").resolve("songs").toFile());
     private final AtomicInteger index = new AtomicInteger(0);
+    private volatile int playlistHash = System.identityHashCode(playList);
     private volatile PlayList.SongInfo playing = null;
 
     private final Sequencer sequencer;
@@ -65,8 +83,30 @@ public class ServerSongPlayer implements NoteReceiver {
         players.remove(player);
     }
 
+    public void nextSong() {
+        this.sequencer.setTickPosition(this.sequencer.getTickLength());
+    }
+
+    public void setSong(String path) {
+        ReferenceArrayList<PlayList.SongInfo> songs = playList.getSongs();
+        for (int i = 0, songsSize = songs.size(); i < songsSize; i++) {
+            PlayList.SongInfo song = songs.get(i);
+            if (song.pathWithoutInvalidChars().equals(path)) {
+                this.index.set(i);
+                nextSong();
+                return;
+            }
+        }
+    }
+
     public void tick() {
         synthesizer.tick();
+
+        if (System.identityHashCode(playList) != playlistHash) {
+            playlistHash = System.identityHashCode(playList);
+            index.set(0);
+        }
+
         if (!sequencer.isRunning()) {
             if (playList.getSongs().isEmpty()) return;
 
@@ -93,7 +133,7 @@ public class ServerSongPlayer implements NoteReceiver {
         player.sendMessage(
                 new LiteralText("Now playing: %s".formatted(info.fileFormat().properties().getOrDefault("title", info.relativeFilePath())))
                         .setStyle(Style.EMPTY.withColor(Formatting.GREEN)),
-                true
+                false
         );
     }
 

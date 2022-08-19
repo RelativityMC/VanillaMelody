@@ -1,6 +1,7 @@
 package com.ishland.vanillamelody.common.playback;
 
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
+import net.minecraft.SharedConstants;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiFileFormat;
@@ -56,7 +57,12 @@ public class PlayList {
     }
 
 
-    record SongInfo(Sequence sequence, MidiFileFormat fileFormat, String relativeFilePath) {
+    record SongInfo(Sequence sequence, MidiFileFormat fileFormat, String relativeFilePath, String pathWithoutInvalidChars) {
+
+        public SongInfo(Sequence sequence, MidiFileFormat fileFormat, String relativeFilePath) {
+            this(sequence, fileFormat, relativeFilePath, SharedConstants.stripInvalidChars(relativeFilePath));
+        }
+
     }
 
 }
