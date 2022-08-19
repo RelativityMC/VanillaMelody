@@ -15,8 +15,10 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 
 import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ScheduledExecutorService;
@@ -45,6 +47,7 @@ public class ServerSongPlayer implements NoteReceiver {
         try {
             sequencer = MidiSystem.getSequencer(false);
             sequencer.getTransmitter().setReceiver(synthesizer);
+            sequencer.addMetaEventListener(this::onMetaMessage);
             sequencer.open();
         } catch (MidiUnavailableException e) {
             throw new RuntimeException(e);
@@ -72,6 +75,7 @@ public class ServerSongPlayer implements NoteReceiver {
             try {
                 final PlayList.SongInfo songInfo = playList.getSongs().get(index.getAndIncrement() % playList.getSongs().size());
                 this.playing = songInfo;
+                sequencer.setSequence((Sequence) null);
                 sequencer.setSequence(songInfo.sequence());
                 sequencer.start();
                 for (ServerPlayerEntity player : this.players) {
@@ -108,6 +112,26 @@ public class ServerSongPlayer implements NoteReceiver {
                 ));
                 volume -= 0.9f;
             }
+        }
+    }
+
+    public void onMetaMessage(MetaMessage metaMessage) {
+        switch (metaMessage.getType()) {
+            case 0x01: // Text
+                if (MinecraftMidiSynthesizer.DEBUG) {
+                    System.out.println("Text: " + new String(metaMessage.getData()));
+                }
+                break;
+            case 0x05: // Lyrics
+                for (ServerPlayerEntity player : players) {
+                    player.sendMessage(new LiteralText(new String(metaMessage.getData())), true);
+                }
+                break;
+            case 0x06: // Marker
+                if (MinecraftMidiSynthesizer.DEBUG) {
+                    System.out.println("Marker: " + new String(metaMessage.getData()));
+                }
+                break;
         }
     }
 }

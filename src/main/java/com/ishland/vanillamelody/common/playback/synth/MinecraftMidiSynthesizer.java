@@ -18,7 +18,7 @@ import java.util.Set;
 
 public class MinecraftMidiSynthesizer implements Receiver {
 
-    private static final boolean DEBUG = false;
+    public static final boolean DEBUG = false;
 
     private static int restrict7Bit(int value) {
         if (value < 0) return 0;
@@ -34,6 +34,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
     private final byte[][] channelPolyPressures = new byte[16][128];
     private final byte[] channelPressures = new byte[16];
     private final byte[] channelVolumes = new byte[16];
+    private final byte[] channelExpression = new byte[16];
     @SuppressWarnings("unchecked")
     private final Set<SimpleNote>[] runningNotes = new Set[16];
     @SuppressWarnings("unchecked")
@@ -76,6 +77,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
             Arrays.fill(bytes, (byte) 127);
         }
         Arrays.fill(channelPressures, (byte) 127);
+        Arrays.fill(channelExpression, (byte) 127);
         Arrays.fill(runningNotes, Sets.newConcurrentHashSet());
         Arrays.fill(pendingOffNotes, Sets.newConcurrentHashSet());
         resetControllers();
@@ -174,8 +176,15 @@ public class MinecraftMidiSynthesizer implements Receiver {
 
     private void controlChange(ShortMessage shortMessage) {
         switch (shortMessage.getData1()) {
+            case 1: // Bank Select
+                break; // TODO
+            case 2: // Modulation Wheel
+                break; // TODO
             case 7: // channel volume
                 channelVolumes[shortMessage.getChannel()] = (byte) restrict7Bit(shortMessage.getData2());
+                break;
+            case 11: // Expression
+                channelExpression[shortMessage.getChannel()] = (byte) restrict7Bit(shortMessage.getData2());
                 break;
             case 64: // Hold Pedal
                 holdPedal[shortMessage.getChannel()] = shortMessage.getData2() >= 64;
@@ -254,7 +263,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
     }
 
     public void noteOn(ShortMessage shortMessage) {
-//        if (shortMessage.getChannel() != 3 && shortMessage.getChannel() != 9) return;
+//        if (shortMessage.getChannel() != 12 && shortMessage.getChannel() != 9) return;
         final Note note;
         if (shortMessage.getChannel() == 9 || (isCh10Percussion && shortMessage.getChannel() == 10)) {
             final MidiInstruments.MidiPercussion percussion = percussionBank.get(shortMessage.getData1());
@@ -262,7 +271,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
             note = new Note(
                     (byte) percussion.mcInstrument,
                     (short) percussion.midiKey,
-                    (float) ((shortMessage.getData2() / 127.0) * (channelPolyPressures[shortMessage.getChannel()][shortMessage.getData1()] / 127.0) * (channelPressures[shortMessage.getChannel()] / 127.0) * (channelVolumes[shortMessage.getChannel()] / 127.0)),
+                    getNoteVolume(shortMessage.getData2(), shortMessage.getChannel(), shortMessage.getData1()),
                     100,
                     (short) 0);
         } else {
@@ -272,7 +281,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
             note = new Note(
                     (byte) channelProgram.mcInstrument,
                     key,
-                    (float) ((shortMessage.getData2() / 127.0) * (channelPolyPressures[shortMessage.getChannel()][shortMessage.getData1()] / 127.0) * (channelPressures[shortMessage.getChannel()] / 127.0) * (channelVolumes[shortMessage.getChannel()] / 127.0)) * keyVelocityModifier(key),
+                    getNoteVolume(shortMessage.getData2(), shortMessage.getChannel(), shortMessage.getData1()),
                     100,
                     (short) (channelPitchBends[shortMessage.getChannel()] / 4096.0 * 100));
 //            System.out.println(channelProgramsNum[shortMessage.getChannel()]);
@@ -283,6 +292,16 @@ public class MinecraftMidiSynthesizer implements Receiver {
             }
         }
         playNote(note);
+    }
+
+    private float getNoteVolume(int noteVelocity, int channel, int noteKey) {
+        return (float) (
+                (noteVelocity / 127.0) *
+                        (channelPolyPressures[channel][noteKey] / 127.0) *
+                        (channelPressures[channel] / 127.0) *
+                        (channelVolumes[channel] / 127.0) *
+                        (channelExpression[channel] / 127.0)
+        );
     }
 
     private void playNote(Note note) {
@@ -309,7 +328,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
                         new Note(
                                 (byte) channelProgram.mcInstrument,
                                 key,
-                                (float) (((note.velocity / 127.0) * (channelPolyPressures[channel][note.note] / 127.0) * (channelPressures[channel] / 127.0)) * 0.1 * keyVelocityModifier(key)),
+                                (float) (getNoteVolume(note.velocity, channel, note.note) * 0.1),
                                 100,
                                 (short) (channelPitchBends[channel] / 4096.0 * 100))
                 );
