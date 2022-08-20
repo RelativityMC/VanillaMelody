@@ -137,13 +137,13 @@ public class MinecraftMidiSynthesizer implements Receiver {
 
     private void sysexMessage(SysexMessage sysexMessage) {
         final byte[] data = sysexMessage.getData();
-        if ((data[1] & 0xFF) == 0x7E) { // Non-Realtime
-            int deviceID = data[2] & 0xFF;
+        if ((data[0] & 0xFF) == 0x7E) { // Non-Realtime
+            int deviceID = data[1] & 0xFF;
             if (deviceID == 0x7F || deviceID == 0x00) {
-                int subid1 = data[3] & 0xFF;
+                int subid1 = data[2] & 0xFF;
                 switch (subid1) {
                     case 0x09:  // General Midi Message
-                        int subid2 = data[4] & 0xFF;
+                        int subid2 = data[3] & 0xFF;
                         switch (subid2) {
                             case 0x01:  // General Midi 1 On
                                 generalMidiMode = 1;
@@ -241,6 +241,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
     }
 
     public void channelPressure(ShortMessage shortMessage) {
+        if (shortMessage.getData1() == 0) return;
         channelPressures[shortMessage.getChannel()] = (byte) shortMessage.getData1();
     }
 
@@ -263,7 +264,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
     }
 
     public void noteOn(ShortMessage shortMessage) {
-//        if (shortMessage.getChannel() != 12 && shortMessage.getChannel() != 9) return;
+//        if (shortMessage.getChannel() != 0 && shortMessage.getChannel() != 9) return;
         final Note note;
         if (shortMessage.getChannel() == 9 || (isCh10Percussion && shortMessage.getChannel() == 10)) {
             final MidiInstruments.MidiPercussion percussion = percussionBank.get(shortMessage.getData1());

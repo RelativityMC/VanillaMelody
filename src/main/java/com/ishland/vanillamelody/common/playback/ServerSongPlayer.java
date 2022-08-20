@@ -10,10 +10,9 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Style;
-import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
+import net.minecraft.util.math.MathHelper;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;
@@ -26,7 +25,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class ServerSongPlayer implements NoteReceiver {
@@ -84,7 +82,8 @@ public class ServerSongPlayer implements NoteReceiver {
     }
 
     public void nextSong() {
-        this.sequencer.setTickPosition(this.sequencer.getTickLength());
+        this.sequencer.setTickPosition(this.sequencer.getTickLength() - 1);
+        this.sequencer.stop();
     }
 
     public void setSong(String path) {

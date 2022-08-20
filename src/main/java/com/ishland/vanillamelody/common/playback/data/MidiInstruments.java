@@ -106,10 +106,10 @@ public class MidiInstruments {
         instrumentMapping.put(38, new MidiInstrument(1, 1, false));
         instrumentMapping.put(39, new MidiInstrument(1, 1, false));
         // Strings
-        instrumentMapping.put(40, new MidiInstrument(6, 0, true));
-        instrumentMapping.put(41, new MidiInstrument(6, 0, true));
-        instrumentMapping.put(42, new MidiInstrument(6, 0, true));
-        instrumentMapping.put(43, new MidiInstrument(6, 0, true));
+        instrumentMapping.put(40, new MidiInstrument(6, -2, true));
+        instrumentMapping.put(41, new MidiInstrument(6, -2, true));
+        instrumentMapping.put(42, new MidiInstrument(6, -2, true));
+        instrumentMapping.put(43, new MidiInstrument(6, -2, true));
         instrumentMapping.put(44, new MidiInstrument(0, 0, true));
         instrumentMapping.put(45, new MidiInstrument(0, 0, false));
         instrumentMapping.put(46, new MidiInstrument(8, 0, false));
@@ -133,23 +133,23 @@ public class MidiInstruments {
         instrumentMapping.put(62, new MidiInstrument(6, -2, true));
         instrumentMapping.put(63, new MidiInstrument(1, 1, true));
         // Reed
-        instrumentMapping.put(64, new MidiInstrument(6, 0, true));
-        instrumentMapping.put(65, new MidiInstrument(6, 0, true));
-        instrumentMapping.put(66, new MidiInstrument(6, 0, true));
-        instrumentMapping.put(67, new MidiInstrument(6, 0, true));
-        instrumentMapping.put(68, new MidiInstrument(6, 0, true));
-        instrumentMapping.put(69, new MidiInstrument(6, 0, true));
-        instrumentMapping.put(70, new MidiInstrument(6, -1, true));
-        instrumentMapping.put(71, new MidiInstrument(6, 0, true));
+        instrumentMapping.put(64, new MidiInstrument(6, -2, true));
+        instrumentMapping.put(65, new MidiInstrument(6, -2, true));
+        instrumentMapping.put(66, new MidiInstrument(6, -2, true));
+        instrumentMapping.put(67, new MidiInstrument(6, -2, true));
+        instrumentMapping.put(68, new MidiInstrument(6, -2, true));
+        instrumentMapping.put(69, new MidiInstrument(6, -2, true));
+        instrumentMapping.put(70, new MidiInstrument(6, -3, true));
+        instrumentMapping.put(71, new MidiInstrument(6, -2, true));
         // Pipe
-        instrumentMapping.put(72, new MidiInstrument(6, -1, true));
-        instrumentMapping.put(73, new MidiInstrument(6, -1, true));
-        instrumentMapping.put(74, new MidiInstrument(6, -1, true));
-        instrumentMapping.put(75, new MidiInstrument(6, -1, true));
-        instrumentMapping.put(76, new MidiInstrument(6, -1, true));
-        instrumentMapping.put(77, new MidiInstrument(6, -1, true));
-        instrumentMapping.put(78, new MidiInstrument(6, -1, true));
-        instrumentMapping.put(79, new MidiInstrument(6, -1, true));
+        instrumentMapping.put(72, new MidiInstrument(6, -3, true));
+        instrumentMapping.put(73, new MidiInstrument(6, -3, true));
+        instrumentMapping.put(74, new MidiInstrument(6, -3, true));
+        instrumentMapping.put(75, new MidiInstrument(6, -3, true));
+        instrumentMapping.put(76, new MidiInstrument(6, -3, true));
+        instrumentMapping.put(77, new MidiInstrument(6, -3, true));
+        instrumentMapping.put(78, new MidiInstrument(6, -3, true));
+        instrumentMapping.put(79, new MidiInstrument(6, -3, true));
         // Synth Lead
         instrumentMapping.put(80, new MidiInstrument(6, -2, true));
         instrumentMapping.put(81, new MidiInstrument(6, -2, true));
