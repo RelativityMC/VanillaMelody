@@ -12,7 +12,7 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Style;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;
@@ -140,12 +140,13 @@ public class ServerSongPlayer implements NoteReceiver {
     public void playNote(Note note) {
         final Identifier sound = new Identifier(note.instrument());
         for (ServerPlayerEntity player : players) {
+            final Vec3d pos = NoteUtil.stereoPan(player.getPos(), player.getYaw(), (float) (note.panning() / 16.0));
             float volume = note.volume();
             while (volume > 0.0f) {
                 player.networkHandler.sendPacket(new PlaySoundIdS2CPacket(
                         sound,
                         SoundCategory.RECORDS,
-                        player.getPos(),
+                        pos,
                         Math.min(volume, 0.9f),
                         note.pitch()
                 ));

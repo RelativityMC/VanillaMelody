@@ -1,6 +1,7 @@
 package com.ishland.vanillamelody.common.playback;
 
-import com.ishland.vanillamelody.common.playback.data.Note;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 
 public class NoteUtil {
 
@@ -131,6 +132,10 @@ public class NoteUtil {
         if(pitch == 0) return key;
         if(pitch < 0) return (short) (key - (-pitch / 100) - (Math.abs(pitch) % 100 != 0 ? 1 : 0));
         return (short) (key + (pitch / 100));
+    }
+
+    public static Vec3d stereoPan(Vec3d location, float yaw, float distance) {
+        return location.add(MathHelper.cos(yaw * (float) (Math.PI / 180.0)) * distance, 0, MathHelper.sin(yaw * (float) (Math.PI / 180.0)) * distance);
     }
 
 }

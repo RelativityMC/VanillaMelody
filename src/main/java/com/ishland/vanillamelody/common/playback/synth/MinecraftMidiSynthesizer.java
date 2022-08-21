@@ -57,6 +57,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
     private final byte[] channelPressures = new byte[16];
     private final byte[] channelVolumes = new byte[16];
     private final byte[] channelExpression = new byte[16];
+    private final byte[] channelPan = new byte[16];
     @SuppressWarnings("unchecked")
     private final Set<SimpleNote>[] runningNotes = new Set[16];
     @SuppressWarnings("unchecked")
@@ -111,6 +112,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
         }
         Arrays.fill(channelPressures, (byte) 127);
         Arrays.fill(channelExpression, (byte) 127);
+        Arrays.fill(channelPan, (byte) 64);
         Arrays.fill(runningNotes, Sets.newConcurrentHashSet());
         Arrays.fill(pendingOffNotes, Sets.newConcurrentHashSet());
         resetControllers();
@@ -344,6 +346,9 @@ public class MinecraftMidiSynthesizer implements Receiver {
             case 7: // channel volume
                 channelVolumes[channel] = (byte) restrict7Bit(value);
                 break;
+            case 10: // Pan
+                channelPan[channel] = (byte) restrict7Bit(value);
+                break;
             case 11: // Expression
                 channelExpression[channel] = (byte) restrict7Bit(value);
                 break;
@@ -558,7 +563,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
                     (byte) percussion.mcInstrument,
                     (short) percussion.midiKey,
                     getNoteVolume(shortMessage.getData2(), shortMessage.getChannel(), shortMessage.getData1()),
-                    100,
+                    channelPan[shortMessage.getChannel()] - 64,
                     (short) 0);
         } else {
             final MidiInstruments.MidiInstrument channelProgram = instrumentBank.get(channelProgramsNum[shortMessage.getChannel()]);
@@ -570,7 +575,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
                     (byte) channelProgram.mcInstrument,
                     key,
                     getNoteVolume(shortMessage.getData2(), shortMessage.getChannel(), shortMessage.getData1()),
-                    100,
+                    channelPan[shortMessage.getChannel()] - 64,
                     (short) ((channelPitchBends[shortMessage.getChannel()] / 4096.0 + simpleNote.pitchOffset) * 100));
 //            System.out.println(channelProgramsNum[shortMessage.getChannel()]);
 //            System.out.println(note);
@@ -617,7 +622,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
                                 (byte) channelProgram.mcInstrument,
                                 key,
                                 (float) (getNoteVolume(note.velocity, channel, note.note) * 0.08),
-                                100,
+                                channelPan[channel] - 64,
                                 (short) ((channelPitchBends[channel] / 4096.0 + note.pitchOffset) * 100))
                 );
             }
