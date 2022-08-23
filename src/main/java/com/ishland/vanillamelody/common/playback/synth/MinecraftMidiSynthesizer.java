@@ -68,6 +68,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
     private int generalMidiMode = 0;
     private boolean isCh10Percussion = false;
 
+    private long tickCount = 0L;
 
     {
         reset(false);
@@ -611,20 +612,21 @@ public class MinecraftMidiSynthesizer implements Receiver {
     }
 
     public void tick() {
+        final long currentTick = tickCount++;
         for (int channel = 0, runningNotesLength = runningNotes.length; channel < runningNotesLength; channel++) {
             Set<SimpleNote> channelRunningNotes = runningNotes[channel];
             for (SimpleNote note : channelRunningNotes) {
                 final MidiInstruments.MidiInstrument channelProgram = instrumentBank.get(channelProgramsNum[channel]);
                 if (channelProgram == null) return;
                 final short key = (short) (note.note + (channelProgram.octaveModifier * 12));
-                playNote(
-                        new Note(
-                                (byte) channelProgram.mcInstrument,
-                                key,
-                                (float) (getNoteVolume(note.velocity, channel, note.note) * 0.08),
-                                channelPan[channel] - 64,
-                                (short) ((channelPitchBends[channel] / 4096.0 + note.pitchOffset) * 100))
-                );
+                final Note resultNote = new Note(
+                        (byte) channelProgram.mcInstrument,
+                        key,
+                        (float) (getNoteVolume(note.velocity, channel, note.note) * 0.08),
+                        channelPan[channel] - 64,
+                        (short) ((channelPitchBends[channel] / 4096.0 + note.pitchOffset) * 100));
+                if (currentTick % Math.max(1, (int) (1 / resultNote.rawPitch())) == 0)
+                    playNote(resultNote);
             }
 
         }

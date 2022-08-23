@@ -1,6 +1,5 @@
 package com.ishland.vanillamelody.client.playback;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.ishland.vanillamelody.common.playback.Constants;
 import com.ishland.vanillamelody.common.playback.NoteUtil;
 import com.ishland.vanillamelody.common.playback.PlayList;
@@ -23,9 +22,6 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClientSongPlayer implements NoteReceiver {
 
@@ -111,17 +107,16 @@ public class ClientSongPlayer implements NoteReceiver {
     public void playNote(Note note) {
         final ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) return;
-        final Identifier sound = new Identifier(NoteUtil.getSoundNameByInstrument(note.originalInstrument()));
+        final Identifier sound = new Identifier(NoteUtil.getSoundNameByInstrument(note.mcInstrument()));
         final Vec3d pos = NoteUtil.stereoPan(Vec3d.ZERO, player.getYaw(), (float) (note.panning() / 16.0));
         float volume = note.volume();
-        final float pitch = NoteUtil.getPitchOnBaseOctave(note.originalKey(), note.originalPitch());
-        if (pitch < 0.05f) return;
+        if (note.rawPitch() < 0.05f) return;
         MinecraftClient.getInstance().getSoundManager().play(
                 new PositionedSoundInstance(
                         sound,
                         SoundCategory.RECORDS,
                         volume,
-                        pitch,
+                        note.rawPitch(),
                         false,
                         0,
                         SoundInstance.AttenuationType.LINEAR,

@@ -81,7 +81,13 @@ public class ServerSongPlayer implements NoteReceiver {
             throw new RuntimeException(e);
         }
 
-        EXECUTOR.scheduleAtFixedRate(this::tick, 0, 20, TimeUnit.MILLISECONDS);
+        EXECUTOR.scheduleAtFixedRate(() -> {
+            try {
+                tick();
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }, 0, 20, TimeUnit.MILLISECONDS);
     }
 
     private Sequencer reopenSequencer() throws MidiUnavailableException {

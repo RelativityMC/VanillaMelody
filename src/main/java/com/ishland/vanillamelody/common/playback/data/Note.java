@@ -2,7 +2,7 @@ package com.ishland.vanillamelody.common.playback.data;
 
 import com.ishland.vanillamelody.common.playback.NoteUtil;
 
-public record Note(String instrument, float volume, int panning, float pitch, byte originalInstrument, short originalKey, short originalPitch) {
+public record Note(String instrument, float volume, int panning, float pitch, float rawPitch, byte mcInstrument) {
 
     /**
      * Used for vanilla instrument input
@@ -19,9 +19,8 @@ public record Note(String instrument, float volume, int panning, float pitch, by
                 velocity,
                 panning,
                 NoteUtil.getPitchInOctave(key, pitch),
-                instrument,
-                key,
-                pitch
+                NoteUtil.getPitchOnBaseOctave(key, pitch),
+                instrument
         );
     }
 
