@@ -625,7 +625,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
                         (float) (getNoteVolume(note.velocity, channel, note.note) * 0.08),
                         channelPan[channel] - 64,
                         (short) ((channelPitchBends[channel] / 4096.0 + note.pitchOffset) * 100));
-                if (currentTick % Math.max(1, (int) (1 / resultNote.rawPitch())) == 0)
+                if (currentTick % Math.max(1, Math.round(1 / resultNote.rawPitch())) == 0)
                     playNote(resultNote);
             }
 
