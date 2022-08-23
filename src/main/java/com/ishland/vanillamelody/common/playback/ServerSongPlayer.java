@@ -1,10 +1,16 @@
 package com.ishland.vanillamelody.common.playback;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.ishland.vanillamelody.common.playback.data.Note;
 import com.ishland.vanillamelody.common.playback.synth.MinecraftMidiSynthesizer;
 import com.ishland.vanillamelody.common.playback.synth.NoteReceiver;
+import com.ishland.vanillamelody.common.util.DigestUtils;
+import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.play.PlaySoundIdS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
@@ -13,6 +19,7 @@ import net.minecraft.text.Style;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.Nullable;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;
@@ -29,14 +36,20 @@ import java.util.stream.Stream;
 
 public class ServerSongPlayer implements NoteReceiver {
 
-    private static final ScheduledExecutorService EXECUTOR = new ScheduledThreadPoolExecutor(1);
+    public static final ScheduledExecutorService EXECUTOR = new ScheduledThreadPoolExecutor(
+            1,
+            new ThreadFactoryBuilder().setNameFormat("VanillaMelody Server Scheduler").setDaemon(true).build()
+    );
+
+    private static final AtomicInteger ID_COUNTER = new AtomicInteger(0);
 
     public static final ServerSongPlayer INSTANCE = new ServerSongPlayer();
 
-    private static volatile PlayList playList = null;
+    static volatile PlayList playList = null;
 
     public static Stream<String> playlistSuggestion() {
-        return playList.getSongs().stream().map(PlayList.SongInfo::pathWithoutInvalidChars);
+        final PlayList list = playList;
+        return list != null ? list.getSongs().stream().map(PlayList.SongInfo::pathWithoutInvalidChars) : Stream.empty();
     }
 
     public static void reload() {
@@ -49,7 +62,9 @@ public class ServerSongPlayer implements NoteReceiver {
         reload();
     }
 
+    private final int syncId = ID_COUNTER.getAndIncrement();
     private final CopyOnWriteArraySet<ServerPlayerEntity> players = new CopyOnWriteArraySet<>();
+    private final CopyOnWriteArraySet<ServerPlayerEntity> playersWithClientMod = new CopyOnWriteArraySet<>();
 
     private final MinecraftMidiSynthesizer synthesizer = new MinecraftMidiSynthesizer(this);
 
@@ -57,14 +72,11 @@ public class ServerSongPlayer implements NoteReceiver {
     private volatile int playlistHash = System.identityHashCode(playList);
     private volatile PlayList.SongInfo playing = null;
 
-    private final Sequencer sequencer;
+    private volatile Sequencer sequencer;
 
     {
         try {
-            sequencer = MidiSystem.getSequencer(false);
-            sequencer.getTransmitter().setReceiver(synthesizer);
-            sequencer.addMetaEventListener(this::onMetaMessage);
-            sequencer.open();
+            reopenSequencer();
         } catch (MidiUnavailableException e) {
             throw new RuntimeException(e);
         }
@@ -72,18 +84,41 @@ public class ServerSongPlayer implements NoteReceiver {
         EXECUTOR.scheduleAtFixedRate(this::tick, 0, 20, TimeUnit.MILLISECONDS);
     }
 
+    private Sequencer reopenSequencer() throws MidiUnavailableException {
+        synchronized (this) {
+            Sequencer sequencer = this.sequencer;
+            if (sequencer != null) sequencer.close();
+            sequencer = this.sequencer = MidiSystem.getSequencer(false);
+            sequencer.getTransmitter().setReceiver(synthesizer);
+            sequencer.addMetaEventListener(this::onMetaMessage);
+            sequencer.open();
+            return sequencer;
+        }
+    }
+
     public void addPlayer(ServerPlayerEntity player) {
+        if (ServerSyncedPlaybackManager.PLAYERS_WITH_CLIENT_INSTALLED.contains(player.getUuid())) {
+            playersWithClientMod.add(player);
+            notifySongChange(player);
+        }
         players.add(player);
         sendSongChange(player);
     }
 
     public void removePlayer(ServerPlayerEntity player) {
+        if (playersWithClientMod.remove(player)) {
+            notifySequenceStop(player);
+        }
         players.remove(player);
     }
 
     public void nextSong() {
-        this.sequencer.setTickPosition(this.sequencer.getTickLength() - 1);
-        this.sequencer.stop();
+        synchronized (this) {
+            final Sequencer sequencer = this.sequencer;
+            if (sequencer == null) return;
+            sequencer.setTickPosition(sequencer.getTickLength() - 1);
+            sequencer.stop();
+        }
     }
 
     public void setSong(String path) {
@@ -106,22 +141,28 @@ public class ServerSongPlayer implements NoteReceiver {
             index.set(0);
         }
 
-        if (!sequencer.isRunning()) {
+        Sequencer sequencer = this.sequencer;
+        if (sequencer != null && !sequencer.isRunning()) {
             if (playList.getSongs().isEmpty()) return;
 
-            this.sequencer.stop();
-            this.synthesizer.reset(true);
-            try {
-                final PlayList.SongInfo songInfo = playList.getSongs().get(index.getAndIncrement() % playList.getSongs().size());
-                this.playing = songInfo;
-                sequencer.setSequence((Sequence) null);
-                sequencer.setSequence(songInfo.sequence());
-                sequencer.start();
-                for (ServerPlayerEntity player : this.players) {
-                    sendSongChange(player);
+            synchronized (this) {
+                sequencer.stop();
+                this.synthesizer.reset(true);
+                try {
+                    final PlayList.SongInfo songInfo = playList.getSongs().get(index.getAndIncrement() % playList.getSongs().size());
+                    this.playing = songInfo;
+                    sequencer.setSequence((Sequence) null);
+                    sequencer = reopenSequencer();
+                    this.synthesizer.reset(true);
+                    sequencer.setSequence(songInfo.sequence());
+                    notifySongChange();
+                    sequencer.start();
+                    for (ServerPlayerEntity player : this.players) {
+                        sendSongChange(player);
+                    }
+                } catch (InvalidMidiDataException | MidiUnavailableException e) {
+                    e.printStackTrace();
                 }
-            } catch (InvalidMidiDataException e) {
-                e.printStackTrace();
             }
         }
     }
@@ -136,10 +177,47 @@ public class ServerSongPlayer implements NoteReceiver {
         );
     }
 
+    private void notifySongChange() {
+        final PacketByteBuf buf = createSequenceChangeBuf();
+        if (buf == null) return;
+        for (ServerPlayerEntity player : this.playersWithClientMod) {
+            buf.retain();
+            ServerPlayNetworking.send(player, Constants.SERVER_PLAYBACK_SEQUENCE_CHANGE, buf);
+        }
+        buf.release();
+    }
+
+    void notifySongChange(ServerPlayerEntity player) {
+        final PacketByteBuf buf = createSequenceChangeBuf();
+        if (buf == null) return;
+        ServerPlayNetworking.send(player, Constants.SERVER_PLAYBACK_SEQUENCE_CHANGE, buf);
+    }
+
+    @Nullable
+    private PacketByteBuf createSequenceChangeBuf() {
+        final PlayList.SongInfo info = this.playing;
+        final Sequencer sequencer = this.sequencer;
+        if (info == null || sequencer == null) return null;
+        final PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer(4 + DigestUtils.SHA256_BYTES + 8));
+        buf.writeInt(this.syncId);
+        buf.writeBytes(info.sha256());
+        buf.writeLong(sequencer.getTickPosition());
+        buf.writeLong(sequencer.getMicrosecondPosition());
+        return buf;
+    }
+
+    private void notifySequenceStop(ServerPlayerEntity player) {
+        final PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        buf.writeInt(this.syncId);
+        ServerPlayNetworking.send(player, Constants.SERVER_PLAYBACK_STOP, buf);
+    }
+
     @Override
     public void playNote(Note note) {
         final Identifier sound = new Identifier(note.instrument());
         for (ServerPlayerEntity player : players) {
+            if (playersWithClientMod.contains(player)) continue;
+
             final Vec3d pos = NoteUtil.stereoPan(player.getPos(), player.getYaw(), (float) (note.panning() / 16.0));
             float volume = note.volume();
             while (volume > 0.0f) {

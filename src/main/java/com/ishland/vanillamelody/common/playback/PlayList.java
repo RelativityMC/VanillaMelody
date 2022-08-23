@@ -1,5 +1,6 @@
 package com.ishland.vanillamelody.common.playback;
 
+import com.ishland.vanillamelody.common.util.DigestUtils;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import net.minecraft.SharedConstants;
 
@@ -7,11 +8,14 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiFileFormat;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.Objects;
 
 public class PlayList {
 
@@ -42,12 +46,16 @@ public class PlayList {
                     pendingScans.add(file);
                 } else if (file.getName().endsWith(".mid")) {
                     try {
+                        byte[] fileContent;
+                        try (final var input = new FileInputStream(file)) {
+                            fileContent = input.readAllBytes();
+                        }
                         songs.add(new SongInfo(
-                                MidiSystem.getSequence(file),
-                                MidiSystem.getMidiFileFormat(file),
+                                fileContent,
                                 directory.toPath().relativize(file.toPath()).toString()
                         ));
                     } catch (InvalidMidiDataException | IOException e) {
+                        System.out.println("Failed to load midi file: " + file.getName());
                         e.printStackTrace();
                     }
                 }
@@ -57,10 +65,13 @@ public class PlayList {
     }
 
 
-    record SongInfo(Sequence sequence, MidiFileFormat fileFormat, String relativeFilePath, String pathWithoutInvalidChars) {
+    public record SongInfo(byte[] sequenceBytes, Sequence sequence, MidiFileFormat fileFormat, String relativeFilePath, String pathWithoutInvalidChars, byte[] sha256) {
 
-        public SongInfo(Sequence sequence, MidiFileFormat fileFormat, String relativeFilePath) {
-            this(sequence, fileFormat, relativeFilePath, SharedConstants.stripInvalidChars(relativeFilePath));
+        public SongInfo(byte[] sequenceBytes, String relativeFilePath) throws InvalidMidiDataException, IOException {
+            this(sequenceBytes, Objects.requireNonNull(MidiSystem.getSequence(new ByteArrayInputStream(sequenceBytes))),
+                    Objects.requireNonNull(MidiSystem.getMidiFileFormat(new ByteArrayInputStream(sequenceBytes))),
+                    relativeFilePath, SharedConstants.stripInvalidChars(relativeFilePath),
+                    DigestUtils.sha256(sequenceBytes));
         }
 
     }

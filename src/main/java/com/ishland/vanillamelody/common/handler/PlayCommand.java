@@ -59,12 +59,12 @@ public class PlayCommand {
 
     private static int handleRadioSetSong(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
         final String song = MessageArgumentType.getMessage(ctx, "song").getString();
-        ServerSongPlayer.INSTANCE.setSong(song);
+        ServerSongPlayer.EXECUTOR.execute(() -> ServerSongPlayer.INSTANCE.setSong(song));
         return 0;
     }
 
     private static int handleRadioNext(CommandContext<ServerCommandSource> ctx) {
-        ServerSongPlayer.INSTANCE.nextSong();
+        ServerSongPlayer.EXECUTOR.execute(ServerSongPlayer.INSTANCE::nextSong);
         return 0;
     }
 

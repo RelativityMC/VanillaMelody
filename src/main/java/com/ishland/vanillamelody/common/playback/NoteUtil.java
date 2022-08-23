@@ -128,6 +128,33 @@ public class NoteUtil {
         return pitches[key * 100 + pitch];
     }
 
+    public static float getPitchOnBaseOctave(short key, short pitch) {
+        // Apply pitch to key
+        key = applyPitchToKey(key, pitch);
+        pitch %= 100;
+        if(pitch < 0) pitch = (short) (100 + pitch);
+
+        // -15 base_-2
+        // 9 base_-1
+        // 33 base
+        // 57 base_1
+        // 81 base_2
+        // 105 base_3
+        float level = 1;
+        while (key < 33) {
+            key += 24;
+            level *= 0.25f;
+        }
+        while (key > 56) {
+            key -= 24;
+            level *= 4.0f;
+        }
+
+        key -= 33;
+
+        return pitches[key * 100 + pitch] * level;
+    }
+
     public static short applyPitchToKey(short key, short pitch) {
         if(pitch == 0) return key;
         if(pitch < 0) return (short) (key - (-pitch / 100) - (Math.abs(pitch) % 100 != 0 ? 1 : 0));
