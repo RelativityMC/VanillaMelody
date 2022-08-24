@@ -555,7 +555,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
     }
 
     public void noteOn(ShortMessage shortMessage) {
-//        if (shortMessage.getChannel() != 0 && shortMessage.getChannel() != 9) return;
+//        if (shortMessage.getChannel() != 11 && shortMessage.getChannel() != 9) return;
         final Note note;
         if (shortMessage.getChannel() == 9 || (isCh10Percussion && shortMessage.getChannel() == 10)) {
             final MidiInstruments.MidiPercussion percussion = percussionBank.get(shortMessage.getData1());
@@ -578,6 +578,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
                     getNoteVolume(shortMessage.getData2(), shortMessage.getChannel(), shortMessage.getData1()),
                     channelPan[shortMessage.getChannel()] - 64,
                     (short) ((channelPitchBends[shortMessage.getChannel()] / 4096.0 + simpleNote.pitchOffset) * 100));
+//            System.out.println(shortMessage.getChannel());
 //            System.out.println(channelProgramsNum[shortMessage.getChannel()]);
 //            System.out.println(note);
             if (channelProgram.isLongSound) {
