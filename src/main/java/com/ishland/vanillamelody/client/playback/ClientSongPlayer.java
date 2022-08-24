@@ -16,6 +16,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.random.Random;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
@@ -117,6 +118,7 @@ public class ClientSongPlayer implements NoteReceiver {
                         SoundCategory.RECORDS,
                         volume,
                         note.rawPitch(),
+                        Random.create(),
                         false,
                         0,
                         SoundInstance.AttenuationType.LINEAR,

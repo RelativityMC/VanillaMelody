@@ -11,7 +11,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -70,19 +70,19 @@ public class PlayCommand {
 
     private static int handleReload(CommandContext<ServerCommandSource> ctx) {
         CompletableFuture.runAsync(ServerSongPlayer::reload)
-                .thenRunAsync(() -> ctx.getSource().sendFeedback(new LiteralText("Reloaded songs"), true), ctx.getSource().getServer());
+                .thenRunAsync(() -> ctx.getSource().sendFeedback(Text.of("Reloaded songs"), true), ctx.getSource().getServer());
         return 0;
     }
 
     private static int handleRadioJoin(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        final ServerPlayerEntity player = context.getSource().getPlayer();
+        final ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
         ServerSongPlayer.INSTANCE.removePlayer(player);
         ServerSongPlayer.INSTANCE.addPlayer(player);
         return 0;
     }
 
     private static int handleRadioLeave(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        final ServerPlayerEntity player = context.getSource().getPlayer();
+        final ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
         ServerSongPlayer.INSTANCE.removePlayer(player);
         return 0;
     }

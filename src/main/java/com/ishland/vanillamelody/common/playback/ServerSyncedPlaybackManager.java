@@ -27,7 +27,7 @@ public class ServerSyncedPlaybackManager {
     static {
         ServerPlayConnectionEvents.INIT.register((handler, server) -> {
             ServerPlayNetworking.registerReceiver(handler, Constants.CLIENT_HELLO, (server1, player, handler1, buf, responseSender) -> {
-                System.out.println("%s joined with client VanillaMelody installed".formatted(player.getName().asString()));
+                System.out.println("%s joined with client VanillaMelody installed".formatted(player.getName().getString()));
                 PLAYERS_WITH_CLIENT_INSTALLED.add(player.getUuid());
                 synchronized (ServerSyncedPlaybackManager.class) {
                     for (Int2ReferenceMap.Entry<ServerSongPlayer> entry : SONG_PLAYERS.int2ReferenceEntrySet()) {
