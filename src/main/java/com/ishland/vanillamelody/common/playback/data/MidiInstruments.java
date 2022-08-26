@@ -61,11 +61,11 @@ public class MidiInstruments {
         // Piano
         instrumentMapping.put(0, new MidiInstrument(0, -1, false));
         instrumentMapping.put(1, new MidiInstrument(0, 0, false));
-        instrumentMapping.put(2, new MidiInstrument(13, 0, false));
+        instrumentMapping.put(2, new MidiInstrument(13, -1, false));
         instrumentMapping.put(3, new MidiInstrument(0, 0, false));
-        instrumentMapping.put(4, new MidiInstrument(13, 0, false));
-        instrumentMapping.put(5, new MidiInstrument(13, 0, false));
-        instrumentMapping.put(6, new MidiInstrument(0, 1, false));
+        instrumentMapping.put(4, new MidiInstrument(13, -1, false));
+        instrumentMapping.put(5, new MidiInstrument(13, -1, false));
+        instrumentMapping.put(6, new MidiInstrument(0, -1, false));
         instrumentMapping.put(7, new MidiInstrument(0, 0, false));
         // Chromatic Percussion
         instrumentMapping.put(8, new MidiInstrument(11, -1, false));
