@@ -555,7 +555,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
     }
 
     public void noteOn(ShortMessage shortMessage) {
-//        if (shortMessage.getChannel() != 11 && shortMessage.getChannel() != 9) return;
+//        if (shortMessage.getChannel() != 5 && shortMessage.getChannel() != 9) return;
         final Note note;
         if (shortMessage.getChannel() == 9 || (isCh10Percussion && shortMessage.getChannel() == 10)) {
             final MidiInstruments.MidiPercussion percussion = percussionBank.get(shortMessage.getData1());
