@@ -19,6 +19,14 @@ public class Constants {
     // if the midi file is found, the following bytes are the midi file content
     public static final Identifier SERVER_MIDI_FILE_RESPONSE = new Identifier(NAMESPACE, "server_midi_file_response");
 
+    // playback init
+    // int32: sync id
+    // int16: instrument count
+    // for each instrument: int16 key + see MidiInstruments$MidiInstrument
+    // int16: percussion count
+    // for each percussion: int16 key + see MidiInstruments$MidiPercussion
+    public static final Identifier SERVER_PLAYBACK_INIT = new Identifier(NAMESPACE, "server_playback_init_0");
+
     // sequence change
     // int32: sync id
     // 32 bytes sha256 of the midi file

@@ -1,6 +1,7 @@
 package com.ishland.vanillamelody.common.playback;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.ishland.vanillamelody.common.playback.data.MidiInstruments;
 import com.ishland.vanillamelody.common.playback.data.Note;
 import com.ishland.vanillamelody.common.playback.synth.MinecraftMidiSynthesizer;
 import com.ishland.vanillamelody.common.playback.synth.NoteReceiver;
@@ -105,6 +106,7 @@ public class ServerSongPlayer implements NoteReceiver {
     public void addPlayer(ServerPlayerEntity player) {
         if (ServerSyncedPlaybackManager.PLAYERS_WITH_CLIENT_INSTALLED.contains(player.getUuid())) {
             playersWithClientMod.add(player);
+            sendInitialData(player);
             notifySongChange(player);
         }
         players.add(player);
@@ -191,6 +193,14 @@ public class ServerSongPlayer implements NoteReceiver {
             ServerPlayNetworking.send(player, Constants.SERVER_PLAYBACK_SEQUENCE_CHANGE, buf);
         }
         buf.release();
+    }
+
+    void sendInitialData(ServerPlayerEntity player) {
+        final PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        buf.writeInt(syncId);
+        MidiInstruments.writeInstruments(synthesizer.getInstrumentBank(), buf);
+        MidiInstruments.writePercussions(synthesizer.getPercussionBank(), buf);
+        ServerPlayNetworking.send(player, Constants.SERVER_PLAYBACK_INIT, buf);
     }
 
     void notifySongChange(ServerPlayerEntity player) {

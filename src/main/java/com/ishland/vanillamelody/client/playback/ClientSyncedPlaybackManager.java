@@ -4,8 +4,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.ishland.vanillamelody.common.playback.Constants;
 import com.ishland.vanillamelody.common.playback.PlayList;
+import com.ishland.vanillamelody.common.playback.data.MidiInstruments;
 import com.ishland.vanillamelody.common.util.DigestUtils;
 import io.netty.buffer.Unpooled;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceFunction;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
@@ -135,6 +137,14 @@ public class ClientSyncedPlaybackManager {
         }, 20, 20, TimeUnit.MILLISECONDS);
 
         ClientPlayConnectionEvents.INIT.register((handler, client) -> {
+            ClientPlayNetworking.registerReceiver(Constants.SERVER_PLAYBACK_INIT, (client1, handler1, buf, responseSender) -> {
+                final int syncId = buf.readInt();
+                final Int2ObjectOpenHashMap<MidiInstruments.MidiInstrument> instruments = MidiInstruments.readInstruments(buf);
+                final Int2ObjectOpenHashMap<MidiInstruments.MidiPercussion> percussions = MidiInstruments.readPercussions(buf);
+                EXECUTOR.execute(() -> {
+                    SONG_PLAYERS.computeIfAbsent(syncId, NEW_SONG_PLAYER).init(instruments, percussions);
+                });
+            });
             ClientPlayNetworking.registerReceiver(Constants.SERVER_PLAYBACK_SEQUENCE_CHANGE, (client1, handler1, buf, responseSender) -> {
                 final int syncId = buf.readInt();
                 final byte[] sha256 = new byte[DigestUtils.SHA256_BYTES];

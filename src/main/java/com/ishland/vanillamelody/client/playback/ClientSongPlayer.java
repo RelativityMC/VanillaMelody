@@ -3,10 +3,12 @@ package com.ishland.vanillamelody.client.playback;
 import com.ishland.vanillamelody.common.playback.Constants;
 import com.ishland.vanillamelody.common.playback.NoteUtil;
 import com.ishland.vanillamelody.common.playback.PlayList;
+import com.ishland.vanillamelody.common.playback.data.MidiInstruments;
 import com.ishland.vanillamelody.common.playback.data.Note;
 import com.ishland.vanillamelody.common.playback.synth.MinecraftMidiSynthesizer;
 import com.ishland.vanillamelody.common.playback.synth.NoteReceiver;
 import io.netty.buffer.Unpooled;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -49,6 +51,11 @@ public class ClientSongPlayer implements NoteReceiver {
             sequencer.open();
             return sequencer;
         }
+    }
+
+    public void init(Int2ObjectOpenHashMap<MidiInstruments.MidiInstrument> instruments, Int2ObjectOpenHashMap<MidiInstruments.MidiPercussion> percussions) {
+        this.synthesizer.setInstrumentBank(instruments);
+        this.synthesizer.setPercussionBank(percussions);
     }
 
     public void sequenceChange(byte[] sha256, long tickPosition, long microsecondsPosition) {

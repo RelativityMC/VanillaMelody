@@ -123,6 +123,22 @@ public class MinecraftMidiSynthesizer implements Receiver {
         Arrays.fill(holdPedal, false);
     }
 
+    public Int2ObjectOpenHashMap<MidiInstruments.MidiInstrument> getInstrumentBank() {
+        return instrumentBank;
+    }
+
+    public void setInstrumentBank(Int2ObjectOpenHashMap<MidiInstruments.MidiInstrument> instrumentBank) {
+        this.instrumentBank = instrumentBank;
+    }
+
+    public Int2ObjectOpenHashMap<MidiInstruments.MidiPercussion> getPercussionBank() {
+        return percussionBank;
+    }
+
+    public void setPercussionBank(Int2ObjectOpenHashMap<MidiInstruments.MidiPercussion> percussionBank) {
+        this.percussionBank = percussionBank;
+    }
+
     @Override
     public void send(MidiMessage midiMessage, long l) {
         try {
@@ -555,7 +571,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
     }
 
     public void noteOn(ShortMessage shortMessage) {
-//        if (shortMessage.getChannel() != 5 && shortMessage.getChannel() != 9) return;
+//        if (shortMessage.getChannel() != 0 && shortMessage.getChannel() != 9) return;
         final Note note;
         if (shortMessage.getChannel() == 9 || (isCh10Percussion && shortMessage.getChannel() == 10)) {
             final MidiInstruments.MidiPercussion percussion = percussionBank.get(shortMessage.getData1());
