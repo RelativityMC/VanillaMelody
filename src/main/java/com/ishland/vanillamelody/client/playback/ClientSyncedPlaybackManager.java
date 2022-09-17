@@ -2,7 +2,7 @@ package com.ishland.vanillamelody.client.playback;
 
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.ishland.vanillamelody.common.playback.Constants;
+import com.ishland.vanillamelody.common.playback.PacketConstants;
 import com.ishland.vanillamelody.common.playback.PlayList;
 import com.ishland.vanillamelody.common.playback.data.MidiInstruments;
 import com.ishland.vanillamelody.common.util.DigestUtils;
@@ -52,10 +52,10 @@ public class ClientSyncedPlaybackManager {
 
     static {
         ClientPlayConnectionEvents.INIT.register((handler, client) -> {
-            ClientPlayNetworking.registerReceiver(Constants.SERVER_HELLO, (client1, handler1, buf, responseSender) -> {
-                responseSender.sendPacket(Constants.CLIENT_HELLO, new PacketByteBuf(Unpooled.buffer(0)));
+            ClientPlayNetworking.registerReceiver(PacketConstants.SERVER_HELLO, (client1, handler1, buf, responseSender) -> {
+                responseSender.sendPacket(PacketConstants.CLIENT_HELLO, new PacketByteBuf(Unpooled.buffer(0)));
             });
-            ClientPlayNetworking.registerReceiver(Constants.SERVER_MIDI_FILE_RESPONSE, (client1, handler1, buf, responseSender) -> {
+            ClientPlayNetworking.registerReceiver(PacketConstants.SERVER_MIDI_FILE_RESPONSE, (client1, handler1, buf, responseSender) -> {
                 final byte status = buf.readByte();
                 if (status == 0x01) { // success
                     final byte[] requestedHash = new byte[DigestUtils.SHA256_BYTES];
@@ -110,7 +110,7 @@ public class ClientSyncedPlaybackManager {
             // request from server
             final PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer(DigestUtils.SHA256_BYTES));
             buf.writeBytes(sha256);
-            networkHandler.sendPacket(ClientPlayNetworking.createC2SPacket(Constants.CLIENT_MIDI_FILE_REQUEST, buf));
+            networkHandler.sendPacket(ClientPlayNetworking.createC2SPacket(PacketConstants.CLIENT_MIDI_FILE_REQUEST, buf));
         }
         return null;
     }
@@ -137,7 +137,7 @@ public class ClientSyncedPlaybackManager {
         }, 20, 20, TimeUnit.MILLISECONDS);
 
         ClientPlayConnectionEvents.INIT.register((handler, client) -> {
-            ClientPlayNetworking.registerReceiver(Constants.SERVER_PLAYBACK_INIT, (client1, handler1, buf, responseSender) -> {
+            ClientPlayNetworking.registerReceiver(PacketConstants.SERVER_PLAYBACK_INIT, (client1, handler1, buf, responseSender) -> {
                 final int syncId = buf.readInt();
                 final Int2ObjectOpenHashMap<MidiInstruments.MidiInstrument> instruments = MidiInstruments.readInstruments(buf);
                 final Int2ObjectOpenHashMap<MidiInstruments.MidiPercussion> percussions = MidiInstruments.readPercussions(buf);
@@ -145,7 +145,7 @@ public class ClientSyncedPlaybackManager {
                     SONG_PLAYERS.computeIfAbsent(syncId, NEW_SONG_PLAYER).init(instruments, percussions);
                 });
             });
-            ClientPlayNetworking.registerReceiver(Constants.SERVER_PLAYBACK_SEQUENCE_CHANGE, (client1, handler1, buf, responseSender) -> {
+            ClientPlayNetworking.registerReceiver(PacketConstants.SERVER_PLAYBACK_SEQUENCE_CHANGE, (client1, handler1, buf, responseSender) -> {
                 final int syncId = buf.readInt();
                 final byte[] sha256 = new byte[DigestUtils.SHA256_BYTES];
                 buf.readBytes(sha256);
@@ -155,7 +155,7 @@ public class ClientSyncedPlaybackManager {
                     SONG_PLAYERS.computeIfAbsent(syncId, NEW_SONG_PLAYER).sequenceChange(sha256, tickPosition, microsecondsPosition);
                 });
             });
-            ClientPlayNetworking.registerReceiver(Constants.SERVER_PLAYBACK_STOP, (client1, handler1, buf, responseSender) -> {
+            ClientPlayNetworking.registerReceiver(PacketConstants.SERVER_PLAYBACK_STOP, (client1, handler1, buf, responseSender) -> {
                 final int syncId = buf.readInt();
                 EXECUTOR.execute(() -> {
                     final ClientSongPlayer player = SONG_PLAYERS.get(syncId);

@@ -1,6 +1,7 @@
 package com.ishland.vanillamelody.client.playback;
 
-import com.ishland.vanillamelody.common.playback.Constants;
+import com.ishland.vanillamelody.common.Constants;
+import com.ishland.vanillamelody.common.playback.PacketConstants;
 import com.ishland.vanillamelody.common.playback.NoteUtil;
 import com.ishland.vanillamelody.common.playback.PlayList;
 import com.ishland.vanillamelody.common.playback.data.MidiInstruments;
@@ -24,6 +25,7 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
+import java.util.function.BooleanSupplier;
 
 public class ClientSongPlayer implements NoteReceiver {
 
@@ -96,7 +98,7 @@ public class ClientSongPlayer implements NoteReceiver {
             if (songInfo != null) {
                 final PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
                 buf.writeInt(syncId);
-                ClientPlayNetworking.send(Constants.CLIENT_PLAYBACK_SEQUENCE_REQUEST, buf);
+                ClientPlayNetworking.send(PacketConstants.CLIENT_PLAYBACK_SEQUENCE_REQUEST, buf);
                 pendingHash = null;
             }
         }
@@ -111,27 +113,15 @@ public class ClientSongPlayer implements NoteReceiver {
     }
 
     @Override
-    public void playNote(Note note) {
+    public void playNote(Note note, BooleanSupplier isDone) {
         final ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) return;
-        final Identifier sound = new Identifier(NoteUtil.getSoundNameByInstrument(note.mcInstrument()));
-        final Vec3d pos = NoteUtil.stereoPan(Vec3d.ZERO, player.getYaw(), (float) (note.panning() / 16.0));
-        float volume = note.volume();
         if (note.rawPitch() < 0.05f) return;
-        MinecraftClient.getInstance().getSoundManager().play(
-                new PositionedSoundInstance(
-                        sound,
-                        SoundCategory.RECORDS,
-                        volume,
-                        note.rawPitch(),
-                        false,
-                        0,
-                        SoundInstance.AttenuationType.LINEAR,
-                        pos.x,
-                        pos.y,
-                        pos.z,
-                        true
-                )
-        );
+        final SynthSoundInstance sound = SynthSoundInstance.create(note, isDone, player.getYaw());
+        if (Constants.isRSLSInstalled) {
+            MinecraftClient.getInstance().getSoundManager().play(sound);
+        } else {
+            MinecraftClient.getInstance().execute(() -> MinecraftClient.getInstance().getSoundManager().play(sound));
+        }
     }
 }

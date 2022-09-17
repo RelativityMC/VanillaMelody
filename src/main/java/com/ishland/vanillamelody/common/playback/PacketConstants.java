@@ -2,7 +2,7 @@ package com.ishland.vanillamelody.common.playback;
 
 import net.minecraft.util.Identifier;
 
-public class Constants {
+public class PacketConstants {
 
     public static final String NAMESPACE = "vanillamelody";
 

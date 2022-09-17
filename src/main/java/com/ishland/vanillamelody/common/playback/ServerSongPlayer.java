@@ -8,7 +8,6 @@ import com.ishland.vanillamelody.common.playback.synth.NoteReceiver;
 import com.ishland.vanillamelody.common.util.DigestUtils;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.PacketByteBuf;
@@ -33,6 +32,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
 import java.util.stream.Stream;
 
 public class ServerSongPlayer implements NoteReceiver {
@@ -190,7 +190,7 @@ public class ServerSongPlayer implements NoteReceiver {
         if (buf == null) return;
         for (ServerPlayerEntity player : this.playersWithClientMod) {
             buf.retain();
-            ServerPlayNetworking.send(player, Constants.SERVER_PLAYBACK_SEQUENCE_CHANGE, buf);
+            ServerPlayNetworking.send(player, PacketConstants.SERVER_PLAYBACK_SEQUENCE_CHANGE, buf);
         }
         buf.release();
     }
@@ -200,13 +200,13 @@ public class ServerSongPlayer implements NoteReceiver {
         buf.writeInt(syncId);
         MidiInstruments.writeInstruments(synthesizer.getInstrumentBank(), buf);
         MidiInstruments.writePercussions(synthesizer.getPercussionBank(), buf);
-        ServerPlayNetworking.send(player, Constants.SERVER_PLAYBACK_INIT, buf);
+        ServerPlayNetworking.send(player, PacketConstants.SERVER_PLAYBACK_INIT, buf);
     }
 
     void notifySongChange(ServerPlayerEntity player) {
         final PacketByteBuf buf = createSequenceChangeBuf();
         if (buf == null) return;
-        ServerPlayNetworking.send(player, Constants.SERVER_PLAYBACK_SEQUENCE_CHANGE, buf);
+        ServerPlayNetworking.send(player, PacketConstants.SERVER_PLAYBACK_SEQUENCE_CHANGE, buf);
     }
 
     @Nullable
@@ -225,11 +225,11 @@ public class ServerSongPlayer implements NoteReceiver {
     private void notifySequenceStop(ServerPlayerEntity player) {
         final PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
         buf.writeInt(this.syncId);
-        ServerPlayNetworking.send(player, Constants.SERVER_PLAYBACK_STOP, buf);
+        ServerPlayNetworking.send(player, PacketConstants.SERVER_PLAYBACK_STOP, buf);
     }
 
     @Override
-    public void playNote(Note note) {
+    public void playNote(Note note, BooleanSupplier isDone) {
         final Identifier sound = new Identifier(note.instrument());
         for (ServerPlayerEntity player : players) {
             if (playersWithClientMod.contains(player)) continue;

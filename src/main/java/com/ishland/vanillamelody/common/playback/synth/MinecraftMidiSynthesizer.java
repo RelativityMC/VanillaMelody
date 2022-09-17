@@ -522,7 +522,11 @@ public class MinecraftMidiSynthesizer implements Receiver {
 //                pendingOffNotes[channel].add(note);
 //        } else {
 //        }
+        for (SimpleNote note : runningNotes[channel]) {
+            note.isDone = true;
+        }
         runningNotes[channel].clear();
+
     }
 
     private void handleHoldPedal(int channel) {
@@ -532,6 +536,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
         if (!holdPedal[channel]) {
             for (Iterator<SimpleNote> iterator = pendingOffNotes[channel].iterator(); iterator.hasNext(); ) {
                 SimpleNote note = iterator.next();
+                note.isDone = true;
                 runningNotes[channel].remove(note);
                 iterator.remove();
             }
@@ -541,10 +546,13 @@ public class MinecraftMidiSynthesizer implements Receiver {
     private void noteOff(ShortMessage shortMessage) {
         final Optional<SimpleNote> found = runningNotes[shortMessage.getChannel()].stream().filter(simpleNote -> simpleNote.note == shortMessage.getData1()).findFirst();
         if (!found.isPresent()) return;
-        if (holdPedal[shortMessage.getChannel()])
-            pendingOffNotes[shortMessage.getChannel()].add(found.get());
-        else
-            runningNotes[shortMessage.getChannel()].remove(found.get());
+        final SimpleNote note = found.get();
+        if (holdPedal[shortMessage.getChannel()]) {
+            pendingOffNotes[shortMessage.getChannel()].add(note);
+        } else {
+            note.isDone = true;
+            runningNotes[shortMessage.getChannel()].remove(note);
+        }
     }
 
     public void channelPressure(ShortMessage shortMessage) {
@@ -582,12 +590,13 @@ public class MinecraftMidiSynthesizer implements Receiver {
                     getNoteVolume(shortMessage.getData2(), shortMessage.getChannel(), shortMessage.getData1()),
                     channelPan[shortMessage.getChannel()] - 64,
                     (short) 0);
+            playNote(note, null, false);
         } else {
             final MidiInstruments.MidiInstrument channelProgram = instrumentBank.get(channelProgramsNum[shortMessage.getChannel()]);
             if (channelProgram == null) return;
             final short key = (short) (shortMessage.getData1() + (channelProgram.octaveModifier * 12));
             final SoftTuning tuning = channelTunings[shortMessage.getChannel()];
-            final SimpleNote simpleNote = new SimpleNote(shortMessage.getData1(), shortMessage.getData2(), tuning);
+            final SimpleNote simpleNote = new SimpleNote(shortMessage.getData1(), shortMessage.getData2(), tuning, channelProgram.isLongSound);
             note = new Note(
                     (byte) channelProgram.mcInstrument,
                     key,
@@ -597,12 +606,10 @@ public class MinecraftMidiSynthesizer implements Receiver {
 //            System.out.println(shortMessage.getChannel());
 //            System.out.println(channelProgramsNum[shortMessage.getChannel()]);
 //            System.out.println(note);
-            if (channelProgram.isLongSound) {
-                runningNotes[shortMessage.getChannel()].remove(simpleNote);
-                runningNotes[shortMessage.getChannel()].add(simpleNote);
-            }
+            runningNotes[shortMessage.getChannel()].remove(simpleNote);
+            runningNotes[shortMessage.getChannel()].add(simpleNote);
+            playNote(note, simpleNote, false);
         }
-        playNote(note);
     }
 
     private float getNoteVolume(int noteVelocity, int channel, int noteKey) {
@@ -615,8 +622,15 @@ public class MinecraftMidiSynthesizer implements Receiver {
         );
     }
 
-    private void playNote(Note note) {
-        noteReceiver.playNote(note);
+    private void playNote(Note note, SimpleNote simpleNote, boolean isRepeatingLongSound) {
+        if (isRepeatingLongSound && simpleNote != null) {
+            long playableUntil = System.currentTimeMillis() + 800L;
+            noteReceiver.playNote(note, () -> simpleNote.isDone || System.currentTimeMillis() > playableUntil);
+        } else if (simpleNote == null) {
+            noteReceiver.playNote(note, () -> false);
+        } else {
+            noteReceiver.playNote(note, () -> simpleNote.isDone);
+        }
     }
 
     private float keyVelocityModifier(short key) {
@@ -633,8 +647,9 @@ public class MinecraftMidiSynthesizer implements Receiver {
         for (int channel = 0, runningNotesLength = runningNotes.length; channel < runningNotesLength; channel++) {
             Set<SimpleNote> channelRunningNotes = runningNotes[channel];
             for (SimpleNote note : channelRunningNotes) {
+                if (!note.isLongSound) continue;
                 final MidiInstruments.MidiInstrument channelProgram = instrumentBank.get(channelProgramsNum[channel]);
-                if (channelProgram == null) return;
+                if (channelProgram == null) continue;
                 final short key = (short) (note.note + (channelProgram.octaveModifier * 12));
                 final Note resultNote = new Note(
                         (byte) channelProgram.mcInstrument,
@@ -643,24 +658,27 @@ public class MinecraftMidiSynthesizer implements Receiver {
                         channelPan[channel] - 64,
                         (short) ((channelPitchBends[channel] / 4096.0 + note.pitchOffset) * 100));
                 if (currentTick % Math.max(1, Math.round(1 / resultNote.rawPitch())) == 0)
-                    playNote(resultNote);
+                    playNote(resultNote, note, true);
             }
 
         }
 
     }
 
-    private class SimpleNote {
+    private static class SimpleNote {
 
         public final int note;
         public final int velocity;
         public final SoftTuning tuning;
+        public final boolean isLongSound;
         public float pitchOffset;
+        public boolean isDone = false;
 
-        private SimpleNote(int note, int velocity, SoftTuning tuning) {
+        private SimpleNote(int note, int velocity, SoftTuning tuning, boolean isLongSound) {
             this.note = note;
             this.velocity = velocity;
             this.tuning = tuning;
+            this.isLongSound = isLongSound;
             this.pitchOffset = (float) ((tuning.getTuning(note) / 100.0) - note);
         }
 
