@@ -26,7 +26,7 @@ public class ServerSyncedPlaybackManager {
 
     static {
         ServerPlayConnectionEvents.INIT.register((handler, server) -> {
-            ServerPlayNetworking.registerReceiver(handler, Constants.CLIENT_HELLO, (server1, player, handler1, buf, responseSender) -> {
+            ServerPlayNetworking.registerReceiver(handler, PacketConstants.CLIENT_HELLO, (server1, player, handler1, buf, responseSender) -> {
                 System.out.println("%s joined with client VanillaMelody installed".formatted(player.getName().getString()));
                 PLAYERS_WITH_CLIENT_INSTALLED.add(player.getUuid());
                 synchronized (ServerSyncedPlaybackManager.class) {
@@ -36,7 +36,7 @@ public class ServerSyncedPlaybackManager {
                     }
                 }
             });
-            ServerPlayNetworking.registerReceiver(handler, Constants.CLIENT_MIDI_FILE_REQUEST, (server1, player, handler1, buf, responseSender) -> {
+            ServerPlayNetworking.registerReceiver(handler, PacketConstants.CLIENT_MIDI_FILE_REQUEST, (server1, player, handler1, buf, responseSender) -> {
                 final PlayList playList = ServerSongPlayer.playList;
 
                 if (playList != null) __label01:{
@@ -52,7 +52,7 @@ public class ServerSyncedPlaybackManager {
                             responseBuf.writeVarInt(song.sequenceBytes().length);
                             responseBuf.writeBytes(song.sequenceBytes());
 
-                            responseSender.sendPacket(Constants.SERVER_MIDI_FILE_RESPONSE, responseBuf);
+                            responseSender.sendPacket(PacketConstants.SERVER_MIDI_FILE_RESPONSE, responseBuf);
                             return;
                         }
                     }
@@ -61,10 +61,10 @@ public class ServerSyncedPlaybackManager {
                     final PacketByteBuf responseBuf = new PacketByteBuf(Unpooled.buffer(1));
                     responseBuf.writeByte(0x00);
 
-                    responseSender.sendPacket(Constants.SERVER_MIDI_FILE_RESPONSE, responseBuf);
+                    responseSender.sendPacket(PacketConstants.SERVER_MIDI_FILE_RESPONSE, responseBuf);
                 }
             });
-            ServerPlayNetworking.registerReceiver(handler, Constants.CLIENT_PLAYBACK_SEQUENCE_REQUEST, (server1, player, handler1, buf, responseSender) -> {
+            ServerPlayNetworking.registerReceiver(handler, PacketConstants.CLIENT_PLAYBACK_SEQUENCE_REQUEST, (server1, player, handler1, buf, responseSender) -> {
                 final int syncId = buf.readInt();
                 final ServerSongPlayer songPlayer = SONG_PLAYERS.get(syncId);
                 if (songPlayer != null) {
@@ -73,7 +73,7 @@ public class ServerSyncedPlaybackManager {
             });
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            sender.sendPacket(Constants.SERVER_HELLO, new PacketByteBuf(Unpooled.buffer(0)));
+            sender.sendPacket(PacketConstants.SERVER_HELLO, new PacketByteBuf(Unpooled.buffer(0)));
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             PLAYERS_WITH_CLIENT_INSTALLED.remove(handler.player.getUuid());

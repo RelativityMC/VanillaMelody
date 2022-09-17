@@ -1,6 +1,8 @@
 package com.ishland.vanillamelody.common.playback.data;
 
 import com.google.common.base.Preconditions;
+import io.netty.buffer.ByteBuf;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import java.util.Map;
@@ -60,13 +62,13 @@ public class MidiInstruments {
 
         // Piano
         instrumentMapping.put(0, new MidiInstrument(0, -1, false));
-        instrumentMapping.put(1, new MidiInstrument(0, 0, false));
+        instrumentMapping.put(1, new MidiInstrument(0, -1, false));
         instrumentMapping.put(2, new MidiInstrument(13, -1, false));
-        instrumentMapping.put(3, new MidiInstrument(0, 0, false));
+        instrumentMapping.put(3, new MidiInstrument(0, -1, false));
         instrumentMapping.put(4, new MidiInstrument(13, -1, false));
         instrumentMapping.put(5, new MidiInstrument(13, -1, false));
         instrumentMapping.put(6, new MidiInstrument(0, -1, false));
-        instrumentMapping.put(7, new MidiInstrument(0, 0, false));
+        instrumentMapping.put(7, new MidiInstrument(0, -1, false));
         // Chromatic Percussion
         instrumentMapping.put(8, new MidiInstrument(11, -1, false));
         instrumentMapping.put(9, new MidiInstrument(11, -1, false));
@@ -217,66 +219,102 @@ public class MidiInstruments {
         // pmap.put(33, new MidiPercussion(0, 0));
         // pmap.put(34, new MidiPercussion(0, 0));
 
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(35, new MidiPercussion(2, 10));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(36, new MidiPercussion(2, 6));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(37, new MidiPercussion(4, 6));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(38, new MidiPercussion(3, 8));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(39, new MidiPercussion(4, 6));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(40, new MidiPercussion(3, 4));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(41, new MidiPercussion(2, 6));
+        percussionMapping.put(35, new MidiPercussion(2, 10));
+        percussionMapping.put(36, new MidiPercussion(2, 6));
+        percussionMapping.put(37, new MidiPercussion(4, 6));
+        percussionMapping.put(38, new MidiPercussion(3, 8));
+        percussionMapping.put(39, new MidiPercussion(4, 6));
+        percussionMapping.put(40, new MidiPercussion(3, 4));
+        percussionMapping.put(41, new MidiPercussion(2, 6));
 
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(42, new MidiPercussion(3, 22));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(43, new MidiPercussion(2, 13));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(44, new MidiPercussion(3, 22));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(45, new MidiPercussion(2, 15));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(46, new MidiPercussion(3, 18));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(47, new MidiPercussion(2, 20));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(48, new MidiPercussion(2, 23));
+        percussionMapping.put(42, new MidiPercussion(3, 22));
+        percussionMapping.put(43, new MidiPercussion(2, 13));
+        percussionMapping.put(44, new MidiPercussion(3, 22));
+        percussionMapping.put(45, new MidiPercussion(2, 15));
+        percussionMapping.put(46, new MidiPercussion(3, 18));
+        percussionMapping.put(47, new MidiPercussion(2, 20));
+        percussionMapping.put(48, new MidiPercussion(2, 23));
 
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(49, new MidiPercussion(3, 17));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(50, new MidiPercussion(2, 23));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(51, new MidiPercussion(3, 24));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(52, new MidiPercussion(3, 8));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(53, new MidiPercussion(3, 13));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(54, new MidiPercussion(4, 18));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(55, new MidiPercussion(3, 18));
+        percussionMapping.put(49, new MidiPercussion(3, 17));
+        percussionMapping.put(50, new MidiPercussion(2, 23));
+        percussionMapping.put(51, new MidiPercussion(3, 24));
+        percussionMapping.put(52, new MidiPercussion(3, 8));
+        percussionMapping.put(53, new MidiPercussion(3, 13));
+        percussionMapping.put(54, new MidiPercussion(4, 18));
+        percussionMapping.put(55, new MidiPercussion(3, 18));
 
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(56, new MidiPercussion(4, 1));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(57, new MidiPercussion(3, 13));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(58, new MidiPercussion(4, 2));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(59, new MidiPercussion(3, 13));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(60, new MidiPercussion(4, 9));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(61, new MidiPercussion(4, 2));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(62, new MidiPercussion(4, 8));
+        percussionMapping.put(56, new MidiPercussion(4, 1));
+        percussionMapping.put(57, new MidiPercussion(3, 13));
+        percussionMapping.put(58, new MidiPercussion(4, 2));
+        percussionMapping.put(59, new MidiPercussion(3, 13));
+        percussionMapping.put(60, new MidiPercussion(4, 9));
+        percussionMapping.put(61, new MidiPercussion(4, 2));
+        percussionMapping.put(62, new MidiPercussion(4, 8));
 
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(63, new MidiPercussion(2, 22));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(64, new MidiPercussion(2, 15));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(65, new MidiPercussion(3, 13));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(66, new MidiPercussion(3, 8));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(67, new MidiPercussion(4, 8));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(68, new MidiPercussion(4, 3));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(69, new MidiPercussion(4, 20));
+        percussionMapping.put(63, new MidiPercussion(2, 22));
+        percussionMapping.put(64, new MidiPercussion(2, 15));
+        percussionMapping.put(65, new MidiPercussion(3, 13));
+        percussionMapping.put(66, new MidiPercussion(3, 8));
+        percussionMapping.put(67, new MidiPercussion(4, 8));
+        percussionMapping.put(68, new MidiPercussion(4, 3));
+        percussionMapping.put(69, new MidiPercussion(4, 20));
 
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(70, new MidiPercussion(4, 23));
+        percussionMapping.put(70, new MidiPercussion(4, 23));
         // pmap.put(71, new MidiPercussion(0, 0));
         // pmap.put(72, new MidiPercussion(0, 0));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(73, new MidiPercussion(4, 17));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(74, new MidiPercussion(4, 11));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(75, new MidiPercussion(4, 18));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(76, new MidiPercussion(4, 9));
+        percussionMapping.put(73, new MidiPercussion(4, 17));
+        percussionMapping.put(74, new MidiPercussion(4, 11));
+        percussionMapping.put(75, new MidiPercussion(4, 18));
+        percussionMapping.put(76, new MidiPercussion(4, 9));
 
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(77, new MidiPercussion(4, 5));
+        percussionMapping.put(77, new MidiPercussion(4, 5));
         // pmap.put(78, new MidiPercussion(0, 0));
         // pmap.put(79, new MidiPercussion(0, 0));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(80, new MidiPercussion(4, 17));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(81, new MidiPercussion(4, 22));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(82, new MidiPercussion(3, 22));
+        percussionMapping.put(80, new MidiPercussion(4, 17));
+        percussionMapping.put(81, new MidiPercussion(4, 22));
+        percussionMapping.put(82, new MidiPercussion(3, 22));
         // pmap.put(83, new MidiPercussion(0, 0));
 
         // pmap.put(84, new MidiPercussion(0, 0));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(85, new MidiPercussion(4, 21));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(86, new MidiPercussion(2, 14));
-        ((Map<Integer, MidiPercussion>) percussionMapping).put(87, new MidiPercussion(2, 7));
+        percussionMapping.put(85, new MidiPercussion(4, 21));
+        percussionMapping.put(86, new MidiPercussion(2, 14));
+        percussionMapping.put(87, new MidiPercussion(2, 7));
+    }
+
+    public static Int2ObjectOpenHashMap<MidiInstrument> readInstruments(ByteBuf buf) {
+        Int2ObjectOpenHashMap<MidiInstrument> map = new Int2ObjectOpenHashMap<>();
+        int size = buf.readShort();
+        for (int i = 0; i < size; i++) {
+            int key = buf.readShort();
+            map.put(key, MidiInstrument.read(buf));
+        }
+        return map;
+    }
+
+    public static void writeInstruments(Int2ObjectOpenHashMap<MidiInstrument> mapping, ByteBuf buf) {
+        buf.writeShort(mapping.size());
+        for (Int2ObjectMap.Entry<MidiInstrument> entry : mapping.int2ObjectEntrySet()) {
+            buf.writeShort(entry.getIntKey());
+            entry.getValue().write(buf);
+        }
+    }
+
+    public static Int2ObjectOpenHashMap<MidiPercussion> readPercussions(ByteBuf buf) {
+        Int2ObjectOpenHashMap<MidiPercussion> map = new Int2ObjectOpenHashMap<>();
+        int size = buf.readShort();
+        for (int i = 0; i < size; i++) {
+            int key = buf.readShort();
+            map.put(key, MidiPercussion.read(buf));
+        }
+        return map;
+    }
+
+    public static void writePercussions(Int2ObjectOpenHashMap<MidiPercussion> mapping, ByteBuf buf) {
+        buf.writeShort(mapping.size());
+        for (Int2ObjectMap.Entry<MidiPercussion> entry : mapping.int2ObjectEntrySet()) {
+            buf.writeShort(entry.getIntKey());
+            entry.getValue().write(buf);
+        }
     }
 
     public static class MidiInstrument {
@@ -285,12 +323,25 @@ public class MidiInstruments {
         public final int octaveModifier;
         public final boolean isLongSound; // TODO better name
 
+        public static MidiInstrument read(ByteBuf buffer) {
+            byte mcInstrument = buffer.readByte();
+            int octaveModifier = buffer.readInt();
+            boolean isLongSound = buffer.readBoolean();
+            return new MidiInstrument(mcInstrument, octaveModifier, isLongSound);
+        }
+
         public MidiInstrument(int mcInstrument, int octaveModifier, boolean isLongSound) {
             Preconditions.checkArgument(mcInstrument >= 0);
             Preconditions.checkArgument(mcInstrument <= 15);
-            this.isLongSound = isLongSound;
             this.mcInstrument = mcInstrument;
             this.octaveModifier = octaveModifier;
+            this.isLongSound = isLongSound;
+        }
+
+        public void write(ByteBuf buffer) {
+            buffer.writeByte(mcInstrument);
+            buffer.writeInt(octaveModifier);
+            buffer.writeBoolean(isLongSound);
         }
 
         @Override
@@ -308,11 +359,22 @@ public class MidiInstruments {
         public final int mcInstrument;
         public final int midiKey;
 
+        public static MidiPercussion read(ByteBuf buffer) {
+            byte mcInstrument = buffer.readByte();
+            int midiKey = buffer.readInt();
+            return new MidiPercussion(mcInstrument, midiKey);
+        }
+
         public MidiPercussion(int mcInstrument, int mcKey) {
             Preconditions.checkArgument(mcInstrument >= 0);
             Preconditions.checkArgument(mcInstrument <= 15);
             this.mcInstrument = mcInstrument;
             this.midiKey = mcKey + 33;
+        }
+
+        public void write(ByteBuf buffer) {
+            buffer.writeByte(mcInstrument);
+            buffer.writeInt(midiKey - 33);
         }
     }
 }

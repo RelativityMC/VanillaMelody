@@ -2,7 +2,7 @@ package com.ishland.vanillamelody.common.playback;
 
 import net.minecraft.util.Identifier;
 
-public class Constants {
+public class PacketConstants {
 
     public static final String NAMESPACE = "vanillamelody";
 
@@ -18,6 +18,14 @@ public class Constants {
     // VarInt: if the midi file is found, the length of the midi file in bytes
     // if the midi file is found, the following bytes are the midi file content
     public static final Identifier SERVER_MIDI_FILE_RESPONSE = new Identifier(NAMESPACE, "server_midi_file_response");
+
+    // playback init
+    // int32: sync id
+    // int16: instrument count
+    // for each instrument: int16 key + see MidiInstruments$MidiInstrument
+    // int16: percussion count
+    // for each percussion: int16 key + see MidiInstruments$MidiPercussion
+    public static final Identifier SERVER_PLAYBACK_INIT = new Identifier(NAMESPACE, "server_playback_init_0");
 
     // sequence change
     // int32: sync id
