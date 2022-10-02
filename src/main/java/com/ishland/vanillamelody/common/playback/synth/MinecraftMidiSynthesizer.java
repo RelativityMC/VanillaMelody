@@ -554,15 +554,15 @@ public class MinecraftMidiSynthesizer implements Receiver {
     }
 
     private void noteOff(ShortMessage shortMessage) {
-        final int channel = shortMessage.getChannel();
+//        final int channel = shortMessage.getChannel();
         final int noteId = shortMessage.getData1();
-        if (channel == 0) {
-            for (int i = 0; i < 15; i ++) {
+//        if (channel == 0) {
+            for (int i = 0; i <= 15; i ++) {
                 noteOff0(i, noteId);
             }
-        } else {
-            noteOff0(channel, noteId);
-        }
+//        } else {
+//            noteOff0(channel, noteId);
+//        }
     }
 
     private void noteOff0(int channel, int noteId) {
