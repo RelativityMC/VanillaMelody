@@ -112,10 +112,18 @@ public class MinecraftMidiSynthesizer implements Receiver {
             Arrays.fill(bytes, (byte) 127);
         }
         Arrays.fill(channelPressures, (byte) 127);
+        for (byte[] channelPolyPressure : channelPolyPressures) {
+            Arrays.fill(channelPolyPressure, (byte) 127);
+        }
+        Arrays.fill(channelVolumes, (byte) 127);
         Arrays.fill(channelExpression, (byte) 127);
         Arrays.fill(channelPan, (byte) 64);
-        Arrays.fill(runningNotes, Sets.newConcurrentHashSet());
-        Arrays.fill(pendingOffNotes, Sets.newConcurrentHashSet());
+        for (int i = 0, runningNotesLength = runningNotes.length; i < runningNotesLength; i++) {
+            runningNotes[i] = Sets.newConcurrentHashSet();
+        }
+        for (int i = 0, runningNotesLength = pendingOffNotes.length; i < runningNotesLength; i++) {
+            pendingOffNotes[i] = Sets.newConcurrentHashSet();
+        }
         resetControllers();
     }
 
@@ -176,6 +184,8 @@ public class MinecraftMidiSynthesizer implements Receiver {
                     case ShortMessage.CONTROL_CHANGE:
                         controlChange(shortMessage);
                         break;
+                    default:
+                        System.out.println(shortMessage.getCommand());
                 }
 
             } else //noinspection StatementWithEmptyBody
@@ -544,14 +554,26 @@ public class MinecraftMidiSynthesizer implements Receiver {
     }
 
     private void noteOff(ShortMessage shortMessage) {
-        final Optional<SimpleNote> found = runningNotes[shortMessage.getChannel()].stream().filter(simpleNote -> simpleNote.note == shortMessage.getData1()).findFirst();
-        if (!found.isPresent()) return;
+//        final int channel = shortMessage.getChannel();
+        final int noteId = shortMessage.getData1();
+//        if (channel == 0) {
+            for (int i = 0; i <= 15; i ++) {
+                noteOff0(i, noteId);
+            }
+//        } else {
+//            noteOff0(channel, noteId);
+//        }
+    }
+
+    private void noteOff0(int channel, int noteId) {
+        final Optional<SimpleNote> found = runningNotes[channel].stream().filter(simpleNote -> simpleNote.note == noteId).findFirst();
+        if (found.isEmpty()) return;
         final SimpleNote note = found.get();
-        if (holdPedal[shortMessage.getChannel()]) {
-            pendingOffNotes[shortMessage.getChannel()].add(note);
+        if (holdPedal[channel]) {
+            pendingOffNotes[channel].add(note);
         } else {
             note.isDone = true;
-            runningNotes[shortMessage.getChannel()].remove(note);
+            runningNotes[channel].remove(note);
         }
     }
 
@@ -654,7 +676,7 @@ public class MinecraftMidiSynthesizer implements Receiver {
                 final Note resultNote = new Note(
                         (byte) channelProgram.mcInstrument,
                         key,
-                        (float) (getNoteVolume(note.velocity, channel, note.note) * 0.08),
+                        (float) (getNoteVolume(note.velocity, channel, note.note) * 0.75),
                         channelPan[channel] - 64,
                         (short) ((channelPitchBends[channel] / 4096.0 + note.pitchOffset) * 100));
                 if (currentTick % Math.max(1, Math.round(1 / resultNote.rawPitch())) == 0)

@@ -78,7 +78,7 @@ public class ClientSongPlayer implements NoteReceiver {
 
         try {
             sequencer.stop();
-            sequencer.setSequence((Sequence) null);
+//            sequencer.setSequence((Sequence) null);
             this.synthesizer.reset(true);
             this.playing = songInfo;
             sequencer = reopenSequencer();
