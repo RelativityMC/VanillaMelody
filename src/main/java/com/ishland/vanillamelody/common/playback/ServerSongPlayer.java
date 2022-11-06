@@ -159,7 +159,7 @@ public class ServerSongPlayer implements NoteReceiver {
                 try {
                     final PlayList.SongInfo songInfo = playList.getSongs().get(index.getAndIncrement() % playList.getSongs().size());
                     this.playing = songInfo;
-                    sequencer.setSequence((Sequence) null);
+//                    sequencer.setSequence((Sequence) null);
                     sequencer = reopenSequencer();
                     this.synthesizer.reset(true);
                     sequencer.setSequence(songInfo.sequence());
