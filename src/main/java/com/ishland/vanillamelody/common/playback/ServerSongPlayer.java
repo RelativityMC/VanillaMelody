@@ -1,6 +1,7 @@
 package com.ishland.vanillamelody.common.playback;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.ishland.vanillamelody.common.Config;
 import com.ishland.vanillamelody.common.playback.data.MidiInstruments;
 import com.ishland.vanillamelody.common.playback.data.Note;
 import com.ishland.vanillamelody.common.playback.synth.MinecraftMidiSynthesizer;
@@ -113,11 +114,11 @@ public class ServerSongPlayer implements NoteReceiver {
         sendSongChange(player);
     }
 
-    public void removePlayer(ServerPlayerEntity player) {
+    public boolean removePlayer(ServerPlayerEntity player) {
         if (playersWithClientMod.remove(player)) {
             notifySequenceStop(player);
         }
-        players.remove(player);
+        return players.remove(player);
     }
 
     public void nextSong() {
@@ -232,7 +233,7 @@ public class ServerSongPlayer implements NoteReceiver {
     public void playNote(Note note, BooleanSupplier isDone) {
         final Identifier sound = new Identifier(note.instrument());
         for (ServerPlayerEntity player : players) {
-            if (playersWithClientMod.contains(player)) continue;
+            if (!Config.ENABLE_SERVERSIDE_PLAYBACK || playersWithClientMod.contains(player)) continue;
 
             final Vec3d pos = NoteUtil.stereoPan(player.getPos(), player.getYaw(), (float) (note.panning() / 16.0));
             float volume = note.volume();

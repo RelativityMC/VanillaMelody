@@ -1,5 +1,6 @@
 package com.ishland.vanillamelody.common.handler;
 
+import com.ishland.vanillamelody.common.Config;
 import com.ishland.vanillamelody.common.playback.ServerSongPlayer;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -29,12 +30,12 @@ public class PlayCommand {
                                 CommandManager.literal("radio")
                                         .then(
                                                 CommandManager.literal("next")
-                                                        .requires(source -> source.hasPermissionLevel(2))
+                                                        .requires(source -> Config.ALLOW_NON_OPERATOR_RADIO_CHANGE || source.hasPermissionLevel(2))
                                                         .executes(PlayCommand::handleRadioNext)
                                         )
                                         .then(
                                                 CommandManager.literal("setSong")
-                                                        .requires(source -> source.hasPermissionLevel(2))
+                                                        .requires(source -> Config.ALLOW_NON_OPERATOR_RADIO_CHANGE || source.hasPermissionLevel(2))
                                                         .then(
                                                                 CommandManager.argument("song", MessageArgumentType.message())
                                                                         .suggests((context, builder) -> CommandSource.suggestMatching(ServerSongPlayer.playlistSuggestion(), builder))
@@ -69,7 +70,10 @@ public class PlayCommand {
     }
 
     private static int handleReload(CommandContext<ServerCommandSource> ctx) {
-        CompletableFuture.runAsync(ServerSongPlayer::reload)
+        CompletableFuture.runAsync(() -> {
+                    Config.reload();
+                    ServerSongPlayer.reload();
+                })
                 .thenRunAsync(() -> ctx.getSource().sendFeedback(Text.of("Reloaded songs"), true), ctx.getSource().getServer());
         return 0;
     }

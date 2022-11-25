@@ -31,8 +31,8 @@ public class ServerSyncedPlaybackManager {
                 PLAYERS_WITH_CLIENT_INSTALLED.add(player.getUuid());
                 synchronized (ServerSyncedPlaybackManager.class) {
                     for (Int2ReferenceMap.Entry<ServerSongPlayer> entry : SONG_PLAYERS.int2ReferenceEntrySet()) {
-                        entry.getValue().removePlayer(player);
-                        entry.getValue().addPlayer(player);
+                        if (entry.getValue().removePlayer(player))
+                            entry.getValue().addPlayer(player);
                     }
                 }
             });

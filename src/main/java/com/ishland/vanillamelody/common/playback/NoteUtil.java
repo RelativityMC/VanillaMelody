@@ -161,8 +161,8 @@ public class NoteUtil {
         return (short) (key + (pitch / 100));
     }
 
-    public static Vec3d stereoPan(Vec3d location, float yaw, float distance) {
-        return location.add(MathHelper.cos(yaw * (float) (Math.PI / 180.0)) * distance, 0, MathHelper.sin(yaw * (float) (Math.PI / 180.0)) * distance);
+    public static Vec3d stereoPan(Vec3d location, float yaw, float offset) {
+        return location.add(MathHelper.cos(yaw * (float) (Math.PI / 180.0)) * offset, 0, MathHelper.sin(yaw * (float) (Math.PI / 180.0)) * offset);
     }
 
 }

@@ -76,8 +76,8 @@ public class MidiInstruments {
         instrumentMapping.put(11, new MidiInstrument(11, -1, false));
         instrumentMapping.put(12, new MidiInstrument(11, 0, false));
         instrumentMapping.put(13, new MidiInstrument(9, 0, false));
-        instrumentMapping.put(14, new MidiInstrument(7, -1, false));
-        instrumentMapping.put(15, new MidiInstrument(7, 0, false));
+        instrumentMapping.put(14, new MidiInstrument(7, -6, false));
+        instrumentMapping.put(15, new MidiInstrument(7, -5, false));
         // Organ
         instrumentMapping.put(16, new MidiInstrument(1, 1, true));
         instrumentMapping.put(17, new MidiInstrument(1, 1, true));
@@ -166,7 +166,7 @@ public class MidiInstruments {
         instrumentMapping.put(91, new MidiInstrument(0, 0, true));
         instrumentMapping.put(92, new MidiInstrument(0, 0, true));
         instrumentMapping.put(93, new MidiInstrument(0, 0, true));
-        instrumentMapping.put(94, new MidiInstrument(0, 0, true));
+        instrumentMapping.put(94, new MidiInstrument(0, -3, true));
         instrumentMapping.put(95, new MidiInstrument(0, 0, true));
         // Synth Effects
         // imap.put(96, new MidiInstrument(0, 0));
@@ -187,7 +187,7 @@ public class MidiInstruments {
         instrumentMapping.put(110, new MidiInstrument(0, 0, true));
         instrumentMapping.put(111, new MidiInstrument(0, 0, true));
         // Percussive
-        instrumentMapping.put(112, new MidiInstrument(7, 0, false));
+        instrumentMapping.put(112, new MidiInstrument(7, -5, false));
         instrumentMapping.put(113, new MidiInstrument(0, 0, false));
         instrumentMapping.put(114, new MidiInstrument(10, 0, false));
         instrumentMapping.put(115, new MidiInstrument(4, 0, false));
