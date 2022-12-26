@@ -12,10 +12,11 @@ import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.play.PlaySoundIdS2CPacket;
+import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.text.Style;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
@@ -26,7 +27,6 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ScheduledExecutorService;
@@ -238,10 +238,12 @@ public class ServerSongPlayer implements NoteReceiver {
             final Vec3d pos = NoteUtil.stereoPan(player.getPos(), player.getYaw(), (float) (note.panning() / 16.0));
             float volume = note.volume();
             while (volume > 0.0f) {
-                player.networkHandler.sendPacket(new PlaySoundIdS2CPacket(
-                        sound,
+                player.networkHandler.sendPacket(new PlaySoundS2CPacket(
+                        RegistryEntry.of(SoundEvent.of(sound)),
                         SoundCategory.RECORDS,
-                        pos,
+                        pos.x,
+                        pos.y,
+                        pos.z,
                         Math.min(volume, 0.9f),
                         note.pitch(),
                         0L
